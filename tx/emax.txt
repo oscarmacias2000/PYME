@@ -1,0 +1,64 @@
+1. Tienda en línea + eMex
+Sincronizar inventario automáticamente
+
+Crear facturas desde pedidos web
+
+Actualizar precios y promociones
+
+2. App móvil de ventas
+Consultar precios y disponibilidad
+
+Registrar pedidos en campo
+
+Generar facturas desde el móvil
+
+3. Dashboards y reporting
+Visualizar datos en tiempo real
+
+Análisis de ventas
+
+KPIs de inventario
+
+4. Integración con plataformas externas
+Amazon, Mercado Libre, Shopify
+
+Proveedores automáticos
+
+Sistemas de logística
+
+ Consideraciones importantes
+🔐 Seguridad
+No expongas la base de datos directamente a internet
+
+Usa API Gateway como capa intermedia
+
+Implementa autenticación robusta (JWT, API Keys)
+
+Cifra las conexiones (SSL/TLS)
+
+Audita todos los accesos
+
+🚀 Performance
+Usa caché (Redis) para consultas frecuentes
+
+Implementa pooling de conexiones a Firebird
+
+Considera replicación para consultas pesadas
+
+Usa índices en la base de datos
+
+📦 Escalabilidad
+Microservicios para diferentes funcionalidades
+
+Colas (RabbitMQ) para procesos asíncronos
+
+Balanceo de carga si hay mucho tráfico
+
+🔄 Sincronización
+Define estrategia de sync: en tiempo real vs batch
+
+Maneja conflictos de datos
+
+Implementa logs de auditoría
+
+Considera rollback en caso de error

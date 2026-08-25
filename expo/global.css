@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tipografia por defecto (web): IBM Plex Sans con respaldos, y suavizado
+   para que las letras se vean nitidas como en el sistema de IBM. */
+:root {
+  --font-plex: 'IBMPlexSans_400Regular', 'IBM Plex Sans', 'Helvetica Neue',
+    Arial, sans-serif;
+}
+
+html,
+body,
+#root,
+#root * {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Texto sin clase explicita hereda IBM Plex en lugar de la fuente del
+   sistema (inputs, textareas y botones incluidos). */
+html,
+body,
+#root,
+input,
+textarea,
+select,
+button {
+  font-family: var(--font-plex);
+}

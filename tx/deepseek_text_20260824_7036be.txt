@@ -1,0 +1,45 @@
+
+---
+
+## 📦 Archivo completo combinado
+
+Aquí tienes un resumen con todos los temas para que puedas tener un índice rápido:
+
+### Índice de Prompts para Node.js
+
+| # | Tema |
+|---|------|
+| 1 | Configuración inicial de proyecto |
+| 2 | TypeScript en Node.js |
+| 3 | API REST con Express + TypeScript |
+| 4 | Autenticación y autorización |
+| 5 | Conexión a bases de datos |
+| 6 | Configuración de logging |
+| 7 | Manejo de errores |
+| 8 | Variables de entorno |
+| 9 | Testing |
+| 10 | Dockerización |
+| 11 | Performance y optimización |
+| 12 | Seguridad |
+| 13 | WebSockets (Socket.io) |
+| 14 | GraphQL API |
+| 15 | Microservicios |
+| 16 | Background jobs y colas |
+| 17 | Cron jobs |
+| 18 | Streaming de datos |
+| 19 | Integración cloud |
+| 20 | CI/CD |
+| 21 | Migración a TypeScript |
+| 22 | Optimización de build |
+| 23 | Serverless |
+| 24 | Caché distribuido |
+| 25 | Documentación de API |
+| 26 | Web scraping |
+| 27 | gRPC |
+| 28 | Event Sourcing y CQRS |
+| 29 | Monitoreo y observabilidad |
+| 30 | Fullstack (Node + Frontend) |
+
+---
+
+¿Quieres que profundice en algún prompt específico con ejemplos de código, o necesitas prompts para otra tecnología (React, Next.js, NestJS, etc.)?
