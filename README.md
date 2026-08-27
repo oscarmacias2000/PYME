@@ -4,22 +4,37 @@
 # Infraesctructura 
 
 <p align="center">
-  <img src="https://icon.icepanel.io/Technology/svg/Cloudflare.svg" alt="Perfil de clientes ideales" width="50">
+  <table>
+    <tr>
+      <td align="center" style="padding: 20px;">
+        <img src="https://icon.icepanel.io/Technology/svg/Cloudflare.svg" alt="Cloudflare" width="60">
+        <br>
+        <strong>Cloudflare</strong>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="padding: 20px;">
+        <img src="https://icon.icepanel.io/Technology/svg/Stack-Overflow.svg" alt="Stack Overflow" width="60">
+        <br>
+        <strong>Stack Overflow</strong>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="padding: 20px;">
+        <img src="https://icon.icepanel.io/Technology/svg/Git.svg" alt="Git" width="60">
+        <br>
+        <strong>Git</strong>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="padding: 20px;">
+        <img src="https://icon.icepanel.io/Technology/png-shadow-512/GitHub.png" alt="GitHub" width="60">
+        <br>
+        <strong>GitHub</strong>
+      </td>
+    </tr>
+  </table>
 </p>
-
-<p align="center">
-  <img src="https://icon.icepanel.io/Technology/svg/Stack-Overflow.svg" alt="" width="50">
-</p>
-
-<p align="center">
-  <img src="https://icon.icepanel.io/Technology/svg/Git.svg" alt="" width="50">
-</p>
-
-
-<p align="center">
-  <img src="https://icon.icepanel.io/Technology/png-shadow-512/GitHub.png" alt="" width="50">
-</p>
-
 
 **Impulsamos la transformación digital de tu PYME.**  
 Integramos inteligencia artificial, automatización inteligente e infraestructura de redes robusta para que tu negocio opere con la eficiencia y seguridad del siglo XXI.
