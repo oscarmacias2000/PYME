@@ -6,29 +6,23 @@
 <p align="center">
   <table>
     <tr>
-      <td align="center" style="padding: 20px;">
-        <img src="https://icon.icepanel.io/Technology/svg/Cloudflare.svg" alt="Cloudflare" width="60">
+      <td align="center">
+        <img src="https://icon.icepanel.io/Technology/svg/Cloudflare.svg" alt="Cloudflare" width="50">
         <br>
         <strong>Cloudflare</strong>
       </td>
-    </tr>
-    <tr>
-      <td align="center" style="padding: 20px;">
-        <img src="https://icon.icepanel.io/Technology/svg/Stack-Overflow.svg" alt="Stack Overflow" width="60">
+      <td align="center">
+        <img src="https://icon.icepanel.io/Technology/svg/Stack-Overflow.svg" alt="Stack Overflow" width="50">
         <br>
         <strong>Stack Overflow</strong>
       </td>
-    </tr>
-    <tr>
-      <td align="center" style="padding: 20px;">
-        <img src="https://icon.icepanel.io/Technology/svg/Git.svg" alt="Git" width="60">
+      <td align="center">
+        <img src="https://icon.icepanel.io/Technology/svg/Git.svg" alt="Git" width="50">
         <br>
         <strong>Git</strong>
       </td>
-    </tr>
-    <tr>
-      <td align="center" style="padding: 20px;">
-        <img src="https://icon.icepanel.io/Technology/png-shadow-512/GitHub.png" alt="GitHub" width="60">
+      <td align="center">
+        <img src="https://icon.icepanel.io/Technology/png-shadow-512/GitHub.png" alt="GitHub" width="50">
         <br>
         <strong>GitHub</strong>
       </td>
