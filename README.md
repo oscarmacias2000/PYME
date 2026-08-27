@@ -29,18 +29,13 @@
        <td align="center">
         <img src="https://icon.icepanel.io/Technology/svg/Chrome.svg" alt="GitHub" width="50">
         <br>
-        <strong>GitHub</strong>
+        <strong>Chrome</strong>
       </td>
        <td align="center">
         <img src="https://icon.icepanel.io/Technology/png-shadow-512/Apple.png" alt="GitHub" width="50">
         <br>
-        <strong>GitHub</strong>
-      </td>
-       <td align="center">
-        <img src="" alt="GitHub" width="50">
-        <br>
-        <strong>GitHub</strong>
-      </td>
+        <strong>Apple</strong>
+       </td>
     </tr>
   </table>
 </p>
