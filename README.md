@@ -9,6 +9,15 @@
   <img src="https://icon.icepanel.io/Technology/svg/Stack-Overflow.svg" alt="" width="50">
 </p>
 
+<p align="center">
+  <img src="https://icon.icepanel.io/Technology/svg/Git.svg" alt="" width="50">
+</p>
+
+
+<p align="center">
+  <img src="https://icon.icepanel.io/Technology/png-shadow-512/GitHub.png" alt="" width="50">
+</p>
+
 
 **Impulsamos la transformación digital de tu PYME.**  
 Integramos inteligencia artificial, automatización inteligente e infraestructura de redes robusta para que tu negocio opere con la eficiencia y seguridad del siglo XXI.
