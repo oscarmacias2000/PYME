@@ -112,9 +112,9 @@ En **NexTech Solutions** (o el nombre de tu empresa), no solo vendemos tecnolog�
 
 ¿Listo para dar el salto tecnológico?
 
-- 📧 **Email:** contacto@nextechsolutions.com (Cambia por tu correo real)
+- 📧 **Email:** ceojesusvillabuildwiselabs@gmail.com (Cambia por tu correo real)
 - 📱 **WhatsApp:** +56 9 XXXX XXXX (Agrega tu número)
-- 🌐 **Web:** [www.nextechsolutions.com](https://www.nextechsolutions.com)
+- 🌐 **Web:** [buildwiselabs.net](https://buildwiselabs.net)
 - 🗓️ **Agenda una asesoría gratuita:** [Enlace a Calendly o formulario]
 
 ---
