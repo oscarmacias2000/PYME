@@ -2,11 +2,11 @@
 # Infraesctructura 
 
 <p align="center">
-  <img src="https://icon.icepanel.io/Technology/svg/Cloudflare.svg" alt="Perfil de clientes ideales" width="700">
+  <img src="https://icon.icepanel.io/Technology/svg/Cloudflare.svg" alt="Perfil de clientes ideales" width="50">
 </p>
 
 <p align="center">
-  <img src="https://icon.icepanel.io/Technology/svg/Stack-Overflow.svg" alt="" width="700">
+  <img src="https://icon.icepanel.io/Technology/svg/Stack-Overflow.svg" alt="" width="50">
 </p>
 
 
