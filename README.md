@@ -1,4 +1,5 @@
-# Buildwiselabs.net – Servicios IA, Automatización & Redes       <img width="2000" height="2000" alt="Diseño sin título (1)" src="https://github.com/user-attachments/assets/b4bf5832-d99e-4d0f-9b01-7542f649b11d" />
+# Buildwiselabs.net – Servicios IA, Automatización & Redes  <img width="1600" height="1600" alt="WhatsApp Image 2026-08-24 at 7 38 43 PM" src="https://github.com/user-attachments/assets/1871b149-99ce-4c1b-aba1-6ed932db7cf6" />
+
 
 # Infraesctructura 
 
