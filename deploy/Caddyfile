@@ -1,0 +1,3 @@
+api.buildwiselabs.duckdns.org {
+    reverse_proxy localhost:3000
+}

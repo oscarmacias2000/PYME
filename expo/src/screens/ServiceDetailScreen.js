@@ -70,11 +70,18 @@ export default function ServiceDetailScreen({ route, navigation }) {
         <Text className="mt-4 max-w-2xl font-plex text-lg leading-7 text-carbon-gray20">
           {service.intro}
         </Text>
-        <Button
-          label="Solicitar este servicio"
-          className="mt-8 self-start"
-          onPress={() => navigation.navigate('Contacto')}
-        />
+        <View className="mt-8 flex-row flex-wrap gap-3">
+          <Button
+            label="Solicitar este servicio"
+            onPress={() => navigation.navigate('Contacto')}
+          />
+          {service.id === 'chatbot' && (
+            <Button
+              label="Probar chatbot →"
+              onPress={() => navigation.navigate('Chatbot')}
+            />
+          )}
+        </View>
       </View>
     </View>
   );

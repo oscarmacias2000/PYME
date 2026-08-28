@@ -1,0 +1,4 @@
+cd E:\PYME\expo
+npx expo export --platform web
+
+Luego en WinSCP sube dist/_expo/ y dist/assets/ a public/_expo/ y public/assets/ en el servidor. Para index.html y metadata.json también.

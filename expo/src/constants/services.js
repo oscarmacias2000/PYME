@@ -4,6 +4,31 @@ import { IMAGES } from './images';
 
 export const SERVICES = [
   {
+    id: 'chatbot',
+    icon: 'chatbubbles-outline',
+    title: 'Chatbot Inteligente para PYMES',
+    tagline: 'Asistente con voz, texto y analisis de datos',
+    description:
+      'Asistente conversacional local con IA que atiende a tus clientes, analiza archivos Excel y automatiza consultas sin depender de servicios externos.',
+    image: IMAGES.chatbot,
+    intro:
+      'Despliega un asistente de IA completamente local que corre en tu infraestructura. Tus clientes o equipo pueden comunicarse por texto o voz, subir hojas de calculo y obtener analisis instantaneos, todo sin enviar datos a terceros.',
+    features: [
+      { icon: 'mic-outline', title: 'Voz y texto', text: 'Interaccion natural por texto o microfono con respuesta en tiempo real.' },
+      { icon: 'document-text-outline', title: 'Analisis de Excel', text: 'Sube archivos de combustible, gastos o ventas y recibe calculos diarios, semanales y totales automaticamente.' },
+      { icon: 'server-outline', title: '100% local con Ollama', text: 'El modelo de lenguaje corre en tu propio servidor. Sin costos por token, sin datos en la nube.' },
+    ],
+    deliverables: [
+      'Chatbot desplegado en Docker listo para produccion',
+      'Interfaz Open WebUI personalizable',
+      'Procesamiento de Excel: combustible, gastos, ventas',
+      'Reporte descargable con resumen diario, semanal y por unidad',
+      'Modelo de lenguaje local (llama3, mistral u otro)',
+      'Capacitacion para tu equipo',
+    ],
+    bullets: ['Voz y texto', 'Analisis de Excel', 'IA 100% local'],
+  },
+  {
     id: 'automatizacion',
     icon: 'git-network-outline',
     title: 'Automatizacion Inteligente',
@@ -123,6 +148,7 @@ export const RECOMMENDED = [
 export const PRODUCTS = [
   'BuildWise Flows',
   'BuildWise Assistant',
+  'BuildWise Chat',
   'BuildWise Analytics',
   'BuildWise Secure',
   'BuildWise Connect',

@@ -35,7 +35,7 @@ pm2 startup && pm2 save
 
 ```bash
 mkdir -p ~/duckdns
-cp /mnt/e/PYME/deploy/duck.sh ~/duckdns/duck.sh   # ya tiene el sub; pon tu TOKEN
+cp /mnt/e/PYME/deploy/duck.sh ~/duckdns/duck.sh   # ya tiene el sub y el token
 chmod 700 ~/duckdns/duck.sh
 ~/duckdns/duck.sh && cat ~/duckdns/duck.log        # debe decir: OK
 
