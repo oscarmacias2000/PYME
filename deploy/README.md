@@ -3,10 +3,7 @@
 Guía para publicar el **backend Node/API** (puerto **3000**) en internet desde un
 **servidor Linux en casa**, con dominio `api.buildwiselabs.duckdns.org` y HTTPS gratis.
 
-> Reemplaza en todos lados:
-> - `buildwiselabs` → tu subdominio de DuckDNS (sin `.duckdns.org`)
-> - `TU_TOKEN` → el token de tu panel en duckdns.org
->
+> Los scripts ya tienen el subdominio `buildwiselabs` y el token configurados.
 > Los comandos se ejecutan en el **servidor Linux** (Ubuntu 22.04 / Debian 11),
 > no en Windows.
 
@@ -30,7 +27,6 @@ En [duckdns.org](https://www.duckdns.org): inicia sesión, crea `buildwiselabs`,
 ```bash
 mkdir -p ~/duckdns
 cp duck.sh ~/duckdns/duck.sh
-# edita ~/duckdns/duck.sh y pon buildwiselabs y TU_TOKEN
 chmod 700 ~/duckdns/duck.sh
 ~/duckdns/duck.sh && cat ~/duckdns/duck.log   # debe decir: OK
 ```

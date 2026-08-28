@@ -18,4 +18,5 @@ export const IMAGES = {
   apps: U('1531482615713-2afd69097998', 800), // desarrollo / codigo
   aboutOffice: U('1497366216548-37526070297c', 1200), // oficina / equipo
   aboutMeeting: U('1600880292203-757bb62b4baf', 1200), // reunion de equipo
+  chatbot: U('1677442135703-1bb4b3df94e6', 800),       // IA / chat
 };
