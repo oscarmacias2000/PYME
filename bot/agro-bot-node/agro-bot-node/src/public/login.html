@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iniciar sesion - pedregoza - bot inteligente</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Segoe UI', system-ui, sans-serif; }
+</style>
+</head>
+<body class="min-h-screen bg-stone-50 flex items-center justify-center px-4">
+
+<div class="w-full max-w-sm">
+  <div class="flex items-center gap-2 justify-center mb-8">
+    <span class="text-2xl">🌱</span>
+    <span class="font-semibold text-stone-700 tracking-tight">pedregoza - bot inteligente</span>
+  </div>
+
+  <div class="bg-white rounded-3xl shadow-sm border border-stone-100 p-8">
+    <h1 class="text-xl font-bold text-stone-800 text-center">Inicia sesion</h1>
+    <p class="text-sm text-stone-400 text-center mt-1 mb-6">Accede para capturar y consultar tus reportes de campo.</p>
+
+    <form id="formLogin" class="space-y-3">
+      <input type="text" id="usuario" placeholder="Usuario" autocomplete="username"
+        class="w-full border border-stone-200 rounded-full px-5 py-3 text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white">
+      <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password"
+        class="w-full border border-stone-200 rounded-full px-5 py-3 text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white">
+      <button type="submit" id="btnEntrar"
+        class="w-full bg-stone-900 hover:bg-black text-white font-semibold rounded-full py-3 text-sm transition">
+        Entrar
+      </button>
+    </form>
+
+    <div id="error" class="mt-4 text-sm text-red-600 text-center" hidden></div>
+
+    <button type="button" onclick="window.location.href='/register'"
+      class="w-full bg-stone-900 hover:bg-black text-white font-semibold rounded-full py-3 text-sm transition mt-3">
+      Ver usuario y contraseña
+    </button>
+    <p class="text-sm text-stone-400 text-center mt-2">Si no tienes usuario, pide que te lo compartan.</p>
+  </div>
+
+  <p class="text-xs text-stone-400 text-center mt-6">Acceso privado del equipo. Si olvidaste tus datos, pide que te los compartan de nuevo.</p>
+</div>
+
+<script>
+const form = document.getElementById('formLogin');
+const errorDiv = document.getElementById('error');
+const btnEntrar = document.getElementById('btnEntrar');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  errorDiv.hidden = true;
+  btnEntrar.disabled = true;
+  btnEntrar.textContent = 'Entrando...';
+  try {
+    const res = await fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        usuario: document.getElementById('usuario').value,
+        password: document.getElementById('password').value,
+      }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      window.location.href = '/bot-web';
+    } else {
+      errorDiv.textContent = data.mensaje || 'No se pudo iniciar sesion.';
+      errorDiv.hidden = false;
+    }
+  } catch (err) {
+    errorDiv.textContent = 'Error de conexion: ' + err.message;
+    errorDiv.hidden = false;
+  } finally {
+    btnEntrar.disabled = false;
+    btnEntrar.textContent = 'Entrar';
+  }
+});
+</script>
+</body>
+</html>

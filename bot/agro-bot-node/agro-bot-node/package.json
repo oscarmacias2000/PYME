@@ -1,0 +1,23 @@
+{
+  "name": "agro-bot-node",
+  "version": "1.0.0",
+  "description": "Prototipo en Node.js del bot de captura de reportes agricolas (equivalente al flujo de n8n con 7 ramas: pagina web, clasificar, guardar, historial, verificacion Meta, mensajes WhatsApp, resumen diario).",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2",
+    "express-session": "^1.19.0",
+    "google-auth-library": "^9.15.0",
+    "googleapis": "^144.0.0",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.16",
+    "socket.io": "^4.8.3"
+  }
+}
