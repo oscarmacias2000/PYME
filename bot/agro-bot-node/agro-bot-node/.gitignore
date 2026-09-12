@@ -12,3 +12,19 @@ agro-bot-sheets-*.json
 _actualizacion*.zip
 _update*.zip
 _to_delete/
+
+# Google Cloud credentials
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!app.json
+!expo.json
+chatbot-*.json
+*-credentials.json
+service-account*.json
+
+# Environment
+.env
+.env.*
+!.env.example
