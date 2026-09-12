@@ -27,4 +27,7 @@ service-account*.json
 # Environment
 .env
 .env.*
-!.env.example
+!.env.exampleexpo/chatbot-506909-c905f91e44f7.json
+*.json
+expo/chatbot-506909-c905f91e44f7.json:
+*.json
