@@ -29,6 +29,7 @@ const linking = {
       Login: 'login',
       Perfil: 'perfil',
       PerfilConfig: 'perfil/configurar',
+      Reportes: 'reportes',
     },
   },
 };

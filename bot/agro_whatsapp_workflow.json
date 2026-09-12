@@ -1,0 +1,2174 @@
+{
+ "name": "Agro PYME - Captura WhatsApp (texto-audio) a Sheets + Reporte diario Gmail-WhatsApp",
+ "nodes": [
+  {
+   "parameters": {
+    "content": "## Como funciona este flujo\n\n**Rama 1 (GET bot-web):** sirve la pagina web del bot.\n\n**Rama 2 (POST bot-web-mensaje):** clasifica el mensaje con Gemini y regresa un PREVIEW editable (ya no guarda directo).\n\n**Rama 3 (POST bot-web-guardar):** cuando el usuario confirma en la pagina, aqui se guarda de verdad en Google Sheets, se manda alerta si hay incidencia, y se responde confirmando.\n\n**Rama 4 (GET bot-web-historial):** regresa los ultimos registros de la tabla que se pida (para el boton \"Ver ultimos\").\n\n**Rama 5 (abajo):** todos los dias a las 8:00 PM (hora Mazatlan) se arma y manda el resumen por Gmail.\n\n### Antes de activar el flujo, revisa:\n1. Credencial Header Auth de Gemini en los 2 nodos \"Gemini (...)\".\n2. Credencial y IDs de Google Sheets en los nodos de Sheets.\n3. Agrega manualmente una columna \"Reportado por\" en AMBAS hojas de Google Sheets (ver nota de Mejoras).\n4. Credencial de Gmail en los nodos de correo.\n5. Activa el flujo y abre la URL de produccion del webhook GET (bot-web) en el navegador.",
+    "height": 480,
+    "width": 620
+   },
+   "id": "240eadc4-dd61-4f8d-b274-a6231c42fa09",
+   "name": "Nota: Como funciona este flujo",
+   "type": "n8n-nodes-base.stickyNote",
+   "typeVersion": 1,
+   "position": [
+    -544,
+    160
+   ]
+  },
+  {
+   "parameters": {
+    "content": "### Gemini\n\nUsa el modelo gemini-2.0-flash (soporta audio + texto).\nCrea tu API key en https://aistudio.google.com/app/apikey\nCredencial tipo 'Query Auth': nombre del parametro = key, valor = tu API key.",
+    "height": 220,
+    "width": 460
+   },
+   "id": "07f17b4f-03a2-4f75-a5e9-c136016345bd",
+   "name": "Nota: Gemini",
+   "type": "n8n-nodes-base.stickyNote",
+   "typeVersion": 1,
+   "position": [
+    1664,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "content": "### Google Sheets\n\nTabla 1 (Reporte de Campo) ya tiene ID configurado.\nTabla 2 (Actividades Diarias): sube tu archivo 'Actividades Agricolas Diarias.xlsx' a Google Drive como Google Sheet, comparte con tu cuenta de servicio/OAuth de n8n, y pega el ID en los 2 nodos de Google Sheets de esa tabla.",
+    "height": 220,
+    "width": 520
+   },
+   "id": "04b94d8e-7648-405e-8f01-27fec0df4f70",
+   "name": "Nota: Google Sheets",
+   "type": "n8n-nodes-base.stickyNote",
+   "typeVersion": 1,
+   "position": [
+    2160,
+    0
+   ]
+  },
+  {
+   "parameters": {
+    "content": "### Reporte diario (Gmail)\n\nResume SOLO la tabla 'Actividades Diarias' (agente 2), tal como se pidio.\nCambia la hora del Schedule Trigger si no quieres las 8:00 PM.\nSe envia por Gmail con un Excel adjunto (nodos 'Code in JavaScript' -> 'Convert to File' -> 'Enviar resumen por correo'). Ya no depende de WhatsApp/Meta.",
+    "height": 220,
+    "width": 700
+   },
+   "id": "79cd4278-5ff3-438d-8ac2-adae7a30d831",
+   "name": "Nota: Reporte diario",
+   "type": "n8n-nodes-base.stickyNote",
+   "typeVersion": 1,
+   "position": [
+    -480,
+    1232
+   ]
+  },
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "bot-web-mensaje",
+    "responseMode": "responseNode",
+    "options": {
+     "allowedOrigins": "*"
+    }
+   },
+   "id": "4099acc1-da7a-4eb8-98f4-d45c58bcc053",
+   "name": "Webhook - Mensaje del bot (POST)",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "position": [
+    224,
+    560
+   ],
+   "webhookId": "ab446b52-1197-481d-bacc-3fa11dd5c7d6"
+  },
+  {
+   "parameters": {
+    "assignments": {
+     "assignments": [
+      {
+       "id": "a1",
+       "name": "tipo",
+       "type": "string",
+       "value": "={{ $json.body.tipo }}"
+      },
+      {
+       "id": "a2",
+       "name": "texto_body",
+       "type": "string",
+       "value": "={{ $json.body.texto || '' }}"
+      },
+      {
+       "id": "a3",
+       "name": "audio_base64",
+       "type": "string",
+       "value": "={{ $json.body.audio_base64 || '' }}"
+      },
+      {
+       "id": "a4",
+       "name": "mime_type",
+       "type": "string",
+       "value": "={{ $json.body.mime_type || 'audio/webm' }}"
+      }
+     ]
+    },
+    "options": {}
+   },
+   "id": "e76b075c-9d1a-4d42-afd8-a880dbea634f",
+   "name": "Extraer mensaje",
+   "type": "n8n-nodes-base.set",
+   "typeVersion": 3.4,
+   "position": [
+    480,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 1
+     },
+     "combinator": "and",
+     "conditions": [
+      {
+       "id": "c1",
+       "leftValue": "={{ $json.tipo }}",
+       "rightValue": "audio",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       }
+      }
+     ]
+    },
+    "options": {}
+   },
+   "id": "bed584ac-0b88-4b78-a84d-76006087937f",
+   "name": "Es audio?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2,
+   "position": [
+    992,
+    480
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const PROMPT = \"Eres un asistente que ayuda a capturar reportes agr\\u00edcolas de una PYME a partir de mensajes de WhatsApp (texto o audio ya transcrito).\\n\\nExisten DOS tablas posibles en las que se debe guardar la informaci\\u00f3n. Debes decidir a cu\\u00e1l corresponde el mensaje y extraer los campos exactos.\\n\\n=== TABLA 1: \\\"reporte_campo\\\" (Rendimiento Diario Jornal) ===\\n\\u00dasala cuando el mensaje hable de RENDIMIENTO de una actividad frente a una META (cantidad realizada, unidad de medida, % de cumplimiento) o reporte una INCIDENCIA (clima, falta de personal, falla de maquinaria, falta de insumos).\\nCampos a extraer (usa null si no se menciona):\\n- Fecha (formato YYYY-MM-DD; si dicen \\\"hoy\\\" usa la fecha actual, si dicen \\\"ayer\\\" usa la fecha actual menos 1 d\\u00eda)\\n- Actividad (valores t\\u00edpicos: Riego, Poda (Elevante), Poda (mecanica), Fertilizaci\\u00f3n, Cosecha, Fumigaci\\u00f3n, Desbarado; si no coincide usa el texto tal cual)\\n- Ubicacion (valores t\\u00edpicos: Pedregoza, Villa Uni\\u00f3n, Huajote)\\n- Huerta (valores t\\u00edpicos: La Adulta, Arroyo 1, Arroyo 2, Arroyo 3, Los Tamarindos, La Loma, La Carretera, Pozo 1, Pozo 2, Loma Baja, El Caballo, El Veterinario, Shumbe\\u00f1o, El Becerro, Beatriz, Shelma, La Brecha, Los Panales, Las Ca\\u00f1adas, Las Cuatas)\\n- Responsable (valores t\\u00edpicos: Carlos Verde, Saul Guzman, David Sarabia; si mencionan un nombre distinto, \\u00fasalo tal cual)\\n- NumeroDePersonas (n\\u00famero entero de personas/jornal)\\n- CantidadRealizada (n\\u00famero, lo que se logr\\u00f3)\\n- UnidadDeMedida (ej. \\u00e1rboles, ha, kg, litros)\\n- MetaDeRendimiento (n\\u00famero, la meta esperada, null si no se menciona)\\n- Incidencia (\\\"S\\u00ed\\\" o \\\"No\\\")\\n- MotivoDeIncidencia (valores t\\u00edpicos: Clima, Falta de personal, Falla de maquinaria, Falta de insumos, Otro; null si Incidencia es \\\"No\\\")\\n- Observaciones (texto libre, resume cualquier detalle adicional)\\n\\n=== TABLA 2: \\\"actividades_diarias\\\" (Programa de Actividades Diarias) ===\\n\\u00dasala cuando el mensaje hable de JORNALEROS, N\\u00d3MINA, CUADRILLA, PROCEDENCIA de la gente, o COSTO POR JORNAL \\u2014 es decir, control de personal y pago del d\\u00eda, m\\u00e1s que rendimiento contra una meta.\\nCampos a extraer (usa null si no se menciona):\\n- Fecha (formato YYYY-MM-DD; mismas reglas que arriba)\\n- Campo (valores t\\u00edpicos: Pedregoza, Duranguito, La Reforma, Zopilote)\\n- Lote (valores t\\u00edpicos: Loma Tamarindos, Los Tamarindos - Gabriel, El 30, La Loma, Panales, El Becerro, La Quebrada)\\n- Actividad (valores t\\u00edpicos: Corte de Mango, Rastreo, Desvarado, Fertilizaci\\u00f3n con Subsoleo, Sacando Troncones, Taspaneo de Mango, Quema de Cerco)\\n- Responsable (valores t\\u00edpicos: Ing. Sa\\u00fal Guzm\\u00e1n, Ing. Kevin Rend\\u00f3n, Alfonso Niebla, Gabriel Osuna)\\n- NumeroJornaleros (n\\u00famero entero)\\n- ProcedenciaCuadrilla (valores t\\u00edpicos: V\\u00edctor, Mono, Ram\\u00f3n y Pancho, Perusi, Jorge y Armando, \\u00c1ngel)\\n- RecursosMaquinaria (valores t\\u00edpicos: JD 60, JD 18, Tractor MF 285, Excavadora; null si no aplica)\\n- CostoPorJornal (n\\u00famero, pesos MXN; null si no se menciona)\\n- NominaTotal (n\\u00famero = NumeroJornaleros * CostoPorJornal si ambos existen, si no null)\\n- Observaciones (texto libre)\\n\\n=== FORMATO DE SALIDA ===\\nResponde \\u00daNICAMENTE con un JSON v\\u00e1lido (sin texto adicional, sin marcadores de c\\u00f3digo), con esta forma exacta:\\n{\\n  \\\"tabla\\\": \\\"reporte_campo\\\" | \\\"actividades_diarias\\\" | \\\"no_identificada\\\",\\n  \\\"confianza\\\": \\\"alta\\\" | \\\"media\\\" | \\\"baja\\\",\\n  \\\"texto_transcrito\\\": \\\"<transcripci\\u00f3n literal del audio, o el mismo texto si ya era texto>\\\",\\n  \\\"campos\\\": { ... \\u00fanicamente los campos de la tabla elegida, con las llaves EXACTAS listadas arriba ... }\\n}\\n\\nSi el mensaje no tiene relaci\\u00f3n con ninguna de las dos tablas, o es demasiado ambiguo, usa \\\"tabla\\\": \\\"no_identificada\\\" y \\\"campos\\\": {}.\\nLa fecha de hoy es {{FECHA_HOY}}.\\n\";\nconst hoy = new Date().toISOString().slice(0,10);\nconst promptFinal = PROMPT.replace('{{FECHA_HOY}}', hoy);\nreturn [{ json: { prompt: promptFinal, mime_type: $input.item.json.mime_type, audio_base64: $input.item.json.audio_base64 } }];"
+   },
+   "id": "182489bf-9f51-430a-9b9e-222a497b63a0",
+   "name": "Preparar prompt (audio)",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1952,
+    368
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify({ contents: [ { parts: [ { text: $json.prompt }, { inline_data: { mime_type: $json.mime_type, data: $json.audio_base64 } } ] } ] }) }}",
+    "options": {}
+   },
+   "id": "c83de9cd-03b8-47a1-80c1-62e9d7a6b448",
+   "name": "Gemini (audio): clasificar y extraer",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    2192,
+    368
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const PROMPT = \"Eres un asistente que ayuda a capturar reportes agr\\u00edcolas de una PYME a partir de mensajes de WhatsApp (texto o audio ya transcrito).\\n\\nExisten DOS tablas posibles en las que se debe guardar la informaci\\u00f3n. Debes decidir a cu\\u00e1l corresponde el mensaje y extraer los campos exactos.\\n\\n=== TABLA 1: \\\"reporte_campo\\\" (Rendimiento Diario Jornal) ===\\n\\u00dasala cuando el mensaje hable de RENDIMIENTO de una actividad frente a una META (cantidad realizada, unidad de medida, % de cumplimiento) o reporte una INCIDENCIA (clima, falta de personal, falla de maquinaria, falta de insumos).\\nCampos a extraer (usa null si no se menciona):\\n- Fecha (formato YYYY-MM-DD; si dicen \\\"hoy\\\" usa la fecha actual, si dicen \\\"ayer\\\" usa la fecha actual menos 1 d\\u00eda)\\n- Actividad (valores t\\u00edpicos: Riego, Poda (Elevante), Poda (mecanica), Fertilizaci\\u00f3n, Cosecha, Fumigaci\\u00f3n, Desbarado; si no coincide usa el texto tal cual)\\n- Ubicacion (valores t\\u00edpicos: Pedregoza, Villa Uni\\u00f3n, Huajote)\\n- Huerta (valores t\\u00edpicos: La Adulta, Arroyo 1, Arroyo 2, Arroyo 3, Los Tamarindos, La Loma, La Carretera, Pozo 1, Pozo 2, Loma Baja, El Caballo, El Veterinario, Shumbe\\u00f1o, El Becerro, Beatriz, Shelma, La Brecha, Los Panales, Las Ca\\u00f1adas, Las Cuatas)\\n- Responsable (valores t\\u00edpicos: Carlos Verde, Saul Guzman, David Sarabia; si mencionan un nombre distinto, \\u00fasalo tal cual)\\n- NumeroDePersonas (n\\u00famero entero de personas/jornal)\\n- CantidadRealizada (n\\u00famero, lo que se logr\\u00f3)\\n- UnidadDeMedida (ej. \\u00e1rboles, ha, kg, litros)\\n- MetaDeRendimiento (n\\u00famero, la meta esperada, null si no se menciona)\\n- Incidencia (\\\"S\\u00ed\\\" o \\\"No\\\")\\n- MotivoDeIncidencia (valores t\\u00edpicos: Clima, Falta de personal, Falla de maquinaria, Falta de insumos, Otro; null si Incidencia es \\\"No\\\")\\n- Observaciones (texto libre, resume cualquier detalle adicional)\\n\\n=== TABLA 2: \\\"actividades_diarias\\\" (Programa de Actividades Diarias) ===\\n\\u00dasala cuando el mensaje hable de JORNALEROS, N\\u00d3MINA, CUADRILLA, PROCEDENCIA de la gente, o COSTO POR JORNAL \\u2014 es decir, control de personal y pago del d\\u00eda, m\\u00e1s que rendimiento contra una meta.\\nCampos a extraer (usa null si no se menciona):\\n- Fecha (formato YYYY-MM-DD; mismas reglas que arriba)\\n- Campo (valores t\\u00edpicos: Pedregoza, Duranguito, La Reforma, Zopilote)\\n- Lote (valores t\\u00edpicos: Loma Tamarindos, Los Tamarindos - Gabriel, El 30, La Loma, Panales, El Becerro, La Quebrada)\\n- Actividad (valores t\\u00edpicos: Corte de Mango, Rastreo, Desvarado, Fertilizaci\\u00f3n con Subsoleo, Sacando Troncones, Taspaneo de Mango, Quema de Cerco)\\n- Responsable (valores t\\u00edpicos: Ing. Sa\\u00fal Guzm\\u00e1n, Ing. Kevin Rend\\u00f3n, Alfonso Niebla, Gabriel Osuna)\\n- NumeroJornaleros (n\\u00famero entero)\\n- ProcedenciaCuadrilla (valores t\\u00edpicos: V\\u00edctor, Mono, Ram\\u00f3n y Pancho, Perusi, Jorge y Armando, \\u00c1ngel)\\n- RecursosMaquinaria (valores t\\u00edpicos: JD 60, JD 18, Tractor MF 285, Excavadora; null si no aplica)\\n- CostoPorJornal (n\\u00famero, pesos MXN; null si no se menciona)\\n- NominaTotal (n\\u00famero = NumeroJornaleros * CostoPorJornal si ambos existen, si no null)\\n- Observaciones (texto libre)\\n\\n=== FORMATO DE SALIDA ===\\nResponde \\u00daNICAMENTE con un JSON v\\u00e1lido (sin texto adicional, sin marcadores de c\\u00f3digo), con esta forma exacta:\\n{\\n  \\\"tabla\\\": \\\"reporte_campo\\\" | \\\"actividades_diarias\\\" | \\\"no_identificada\\\",\\n  \\\"confianza\\\": \\\"alta\\\" | \\\"media\\\" | \\\"baja\\\",\\n  \\\"texto_transcrito\\\": \\\"<transcripci\\u00f3n literal del audio, o el mismo texto si ya era texto>\\\",\\n  \\\"campos\\\": { ... \\u00fanicamente los campos de la tabla elegida, con las llaves EXACTAS listadas arriba ... }\\n}\\n\\nSi el mensaje no tiene relaci\\u00f3n con ninguna de las dos tablas, o es demasiado ambiguo, usa \\\"tabla\\\": \\\"no_identificada\\\" y \\\"campos\\\": {}.\\nLa fecha de hoy es {{FECHA_HOY}}.\\n\";\nconst hoy = new Date().toISOString().slice(0,10);\nconst promptFinal = PROMPT.replace('{{FECHA_HOY}}', hoy) + '\\n\\nMensaje del usuario (texto):\\n' + ($input.item.json.texto_body || '');\nreturn [{ json: { prompt: promptFinal } }];"
+   },
+   "id": "1fe14414-d5f8-4a01-9043-49ecfe3c55f6",
+   "name": "Preparar prompt (texto)",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1232,
+    608
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify({ contents: [ { parts: [ { text: $json.prompt } ] } ] }) }}",
+    "options": {}
+   },
+   "id": "98c1ef81-049b-47be-96db-0e5f92b3bb83",
+   "name": "Gemini (texto): clasificar y extraer",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1472,
+    608
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const raw = ($input.item.json.candidates && $input.item.json.candidates[0].content.parts[0].text) || '{}';\nconst cleaned = raw.replace(/```json/g, '').replace(/```/g, '').trim();\nlet data;\ntry { data = JSON.parse(cleaned); } catch (e) { data = { tabla: 'no_identificada', confianza: 'baja', texto_transcrito: raw, campos: {} }; }\nlet canal = 'web';\ntry { $('Extraer mensaje WhatsApp').item; canal = 'whatsapp'; } catch (e) {}\nreturn [{ json: {\n  tabla: data.tabla || 'no_identificada',\n  confianza: data.confianza || 'baja',\n  texto_transcrito: data.texto_transcrito || '',\n  campos: data.campos || {},\n  canal: canal,\n} }];"
+   },
+   "id": "40a5dbea-da6d-46b3-b8c8-ac61c0f7c7fd",
+   "name": "Parsear respuesta Gemini",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    2432,
+    480
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 1
+     },
+     "combinator": "and",
+     "conditions": [
+      {
+       "id": "c1",
+       "leftValue": "={{ $json.tabla }}",
+       "rightValue": "reporte_campo",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       }
+      }
+     ]
+    },
+    "options": {}
+   },
+   "id": "e239e298-4c03-48ec-b31f-c49a1989b3fa",
+   "name": "Es Reporte de Campo?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2,
+   "position": [
+    2672,
+    480
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 1
+     },
+     "combinator": "and",
+     "conditions": [
+      {
+       "id": "c1",
+       "leftValue": "={{ $json.tabla }}",
+       "rightValue": "actividades_diarias",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       }
+      }
+     ]
+    },
+    "options": {}
+   },
+   "id": "eff79554-ea12-416c-a784-2119c9117913",
+   "name": "Es Actividades Diarias?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2,
+   "position": [
+    2912,
+    688
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "1rledplnYjPDTT_OgLTyNaXvSQS7Cn43v",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Rendimiento Diario Jornal",
+     "mode": "name"
+    },
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "Fecha": "={{ $json.campos.Fecha }}",
+      "Actividad": "={{ $json.campos.Actividad }}",
+      "Ubicacion": "={{ $json.campos.Ubicacion }}",
+      "Huerta": "={{ $json.campos.Huerta }}",
+      "Responsable": "={{ $json.campos.Responsable }}",
+      "N° de Personas": "={{ $json.campos.NumeroDePersonas }}",
+      "Cantidad Realizada": "={{ $json.campos.CantidadRealizada }}",
+      "Unidad de Medida": "={{ $json.campos.UnidadDeMedida }}",
+      "Meta de Rendimiento (jornal)": "={{ $json.campos.MetaDeRendimiento }}",
+      "¿Incidencia?": "={{ $json.campos.Incidencia }}",
+      "Motivo de Incidencia": "={{ $json.campos.MotivoDeIncidencia }}",
+      "Observaciones": "={{ $json.campos.Observaciones }}",
+      "Reportado por": "={{ $json.reportado_por }}"
+     },
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "Fecha",
+       "displayName": "Fecha",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Actividad",
+       "displayName": "Actividad",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Ubicacion",
+       "displayName": "Ubicacion",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Huerta",
+       "displayName": "Huerta",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Responsable",
+       "displayName": "Responsable",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "N° de Personas",
+       "displayName": "N° de Personas",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Cantidad Realizada",
+       "displayName": "Cantidad Realizada",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Unidad de Medida",
+       "displayName": "Unidad de Medida",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Meta de Rendimiento (jornal)",
+       "displayName": "Meta de Rendimiento (jornal)",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "¿Incidencia?",
+       "displayName": "¿Incidencia?",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Motivo de Incidencia",
+       "displayName": "Motivo de Incidencia",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Observaciones",
+       "displayName": "Observaciones",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Reportado por",
+       "displayName": "Reportado por",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      }
+     ],
+     "attemptToConvertTypes": false,
+     "convertFieldsToString": true
+    },
+    "options": {}
+   },
+   "id": "0c3c632f-dc0b-4969-bce6-7ea3eb8e4f84",
+   "name": "Guardar en Reporte de Campo",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    2912,
+    320
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "13GhWmzNi6Qk4Oqk",
+     "name": "Google Sheets account"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "jsCode": "const c = $('Es Reporte de Campo?').item.json.campos;\nconst texto = `Registro guardado en Reporte de Campo\\n` +\n  `Fecha: ${c.Fecha || '-'}\\n` +\n  `Actividad: ${c.Actividad || '-'}\\n` +\n  `Huerta: ${c.Huerta || '-'} (${c.Ubicacion || '-'})\\n` +\n  `Responsable: ${c.Responsable || '-'}\\n` +\n  `Personas: ${c.NumeroDePersonas ?? '-'}\\n` +\n  `Realizado: ${c.CantidadRealizada ?? '-'} ${c.UnidadDeMedida || ''} (meta: ${c.MetaDeRendimiento ?? '-'})\\n` +\n  `Incidencia: ${c.Incidencia || 'No'}${c.MotivoDeIncidencia ? ' - ' + c.MotivoDeIncidencia : ''}\\n` +\n  `Obs: ${c.Observaciones || '-'}`;\nreturn [{ json: { mensaje_confirmacion: texto } }];"
+   },
+   "id": "141322a4-8696-4c7e-a887-4ace37756501",
+   "name": "Armar confirmacion (Reporte Campo)",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    3152,
+    320
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "1pfSx99JEkGRDC9sRLdu6CkYjeS-SczwjlVrpc9bqATA",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Actividades Diarias",
+     "mode": "name"
+    },
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "Fecha": "={{ $json.campos.Fecha }}",
+      "Campo": "={{ $json.campos.Campo }}",
+      "Lote": "={{ $json.campos.Lote }}",
+      "Actividad": "={{ $json.campos.Actividad }}",
+      "Responsable": "={{ $json.campos.Responsable }}",
+      "N° Jornaleros": "={{ $json.campos.NumeroJornaleros }}",
+      "Procedencia / Cuadrilla": "={{ $json.campos.ProcedenciaCuadrilla }}",
+      "Recursos / Maquinaria": "={{ $json.campos.RecursosMaquinaria }}",
+      "Costo por Jornal": "={{ $json.campos.CostoPorJornal }}",
+      "Nómina Total": "={{ $json.campos.NominaTotal }}",
+      "Observaciones": "={{ $json.campos.Observaciones }}",
+      "Reportado por": "={{ $json.reportado_por }}"
+     },
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "Fecha",
+       "displayName": "Fecha",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Campo",
+       "displayName": "Campo",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Lote",
+       "displayName": "Lote",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Actividad",
+       "displayName": "Actividad",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Responsable",
+       "displayName": "Responsable",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "N° Jornaleros",
+       "displayName": "N° Jornaleros",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Procedencia / Cuadrilla",
+       "displayName": "Procedencia / Cuadrilla",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Recursos / Maquinaria",
+       "displayName": "Recursos / Maquinaria",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Costo por Jornal",
+       "displayName": "Costo por Jornal",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Nómina Total",
+       "displayName": "Nómina Total",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Observaciones",
+       "displayName": "Observaciones",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      },
+      {
+       "id": "Reportado por",
+       "displayName": "Reportado por",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": true
+      }
+     ],
+     "attemptToConvertTypes": false,
+     "convertFieldsToString": true
+    },
+    "options": {}
+   },
+   "id": "04fae6a3-b0ee-4987-910b-3ac94114bf4b",
+   "name": "Guardar en Actividades Diarias",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    3152,
+    640
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "13GhWmzNi6Qk4Oqk",
+     "name": "Google Sheets account"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "jsCode": "const c = $('Es Reporte de Campo?').item.json.campos;\nconst texto = `Registro guardado en Actividades Diarias\\n` +\n  `Fecha: ${c.Fecha || '-'}\\n` +\n  `Campo/Lote: ${c.Campo || '-'} / ${c.Lote || '-'}\\n` +\n  `Actividad: ${c.Actividad || '-'}\\n` +\n  `Responsable: ${c.Responsable || '-'}\\n` +\n  `Jornaleros: ${c.NumeroJornaleros ?? '-'} (${c.ProcedenciaCuadrilla || '-'})\\n` +\n  `Recursos: ${c.RecursosMaquinaria || '-'}\\n` +\n  `Costo/jornal: ${c.CostoPorJornal ?? '-'} | Nomina: ${c.NominaTotal ?? '-'}\\n` +\n  `Obs: ${c.Observaciones || '-'}`;\nreturn [{ json: { mensaje_confirmacion: texto } }];"
+   },
+   "id": "d24aa1d3-3d54-4e22-87fc-93c619d21cf5",
+   "name": "Armar confirmacion (Actividades Diarias)",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    3392,
+    640
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const g = $('Es Reporte de Campo?').item.json;\nconst texto = 'No pude identificar a que reporte pertenece tu mensaje. Intenta mencionar si es rendimiento/meta de una actividad, o jornaleros/nomina del dia.\\n\\nEntendi: ' + (g.texto_transcrito || '(sin texto)');\nreturn [{ json: { mensaje_confirmacion: texto } }];"
+   },
+   "id": "566c3e48-fed2-49b4-9185-1f8508e29208",
+   "name": "Armar mensaje (no entendido)",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    3152,
+    864
+   ]
+  },
+  {
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "triggerAtHour": 20
+      }
+     ]
+    }
+   },
+   "id": "00b3f2e2-8ffe-41a2-81e8-6d2ebbe729af",
+   "name": "Cada dia 8:00 PM (Mazatlan)",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "position": [
+    272,
+    1072
+   ]
+  },
+  {
+   "parameters": {
+    "documentId": {
+     "__rl": true,
+     "value": "1pfSx99JEkGRDC9sRLdu6CkYjeS-SczwjlVrpc9bqATA",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Actividades Diarias",
+     "mode": "name"
+    },
+    "options": {}
+   },
+   "id": "5bf8fa12-bd08-4275-b251-e1541f6af139",
+   "name": "Leer Actividades Diarias",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    512,
+    1072
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "13GhWmzNi6Qk4Oqk",
+     "name": "Google Sheets account"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "jsCode": "const hoy = new Date().toISOString().slice(0,10);\nconst filas = $input.all().map(i => i.json).filter(r => {\n  if (!r.Fecha) return false;\n  const f = (r.Fecha instanceof Date) ? r.Fecha.toISOString().slice(0,10) : String(r.Fecha).slice(0,10);\n  return f === hoy;\n});\nlet totalJornaleros = 0, totalNomina = 0;\nconst filasTexto = filas.map(r => {\n  totalJornaleros += Number(r['N° Jornaleros']) || 0;\n  totalNomina += Number(r['Nómina Total']) || 0;\n  return '- ' + (r.Campo||'-') + ' / ' + (r.Lote||'-') + ' - ' + (r.Actividad||'-') + ' (' + (r['N° Jornaleros']||0) + ' jornaleros, resp. ' + (r.Responsable||'-') + ')';\n}).join('\\n');\nconst cuerpo_texto = 'Resumen de Actividades Agricolas - ' + hoy + '\\n\\n' +\n  'Actividades registradas: ' + filas.length + '\\n' +\n  'Total jornaleros: ' + totalJornaleros + '\\n' +\n  'Nomina total estimada: $' + totalNomina.toFixed(2) + '\\n\\n' +\n  (filasTexto || 'Sin registros para hoy.');\nconst filasHtml = filas.map(r => '<tr><td>'+(r.Campo||'')+'</td><td>'+(r.Lote||'')+'</td><td>'+(r.Actividad||'')+'</td><td>'+(r.Responsable||'')+'</td><td>'+(r['N° Jornaleros']||'')+'</td><td>'+(r['Nómina Total']||'')+'</td></tr>').join('');\nconst cuerpo_html = '<h2>Resumen de Actividades Agricolas - ' + hoy + '</h2>' +\n  '<p>Actividades registradas: ' + filas.length + '<br>Total jornaleros: ' + totalJornaleros + '<br>Nomina total estimada: $' + totalNomina.toFixed(2) + '</p>' +\n  '<table border=\"1\" cellpadding=\"6\" cellspacing=\"0\"><tr><th>Campo</th><th>Lote</th><th>Actividad</th><th>Responsable</th><th>Jornaleros</th><th>Nomina</th></tr>' + filasHtml + '</table>';\nreturn [{ json: { asunto: 'Resumen diario de actividades agricolas - ' + hoy, cuerpo_texto, cuerpo_html, total_actividades: filas.length } }];"
+   },
+   "id": "fb2048a2-05c7-4238-a5be-503e8ce6ee58",
+   "name": "Filtrar hoy y armar resumen",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    752,
+    1072
+   ]
+  },
+  {
+   "parameters": {
+    "sendTo": "fernandovilla200215@gmail.com",
+    "subject": "={{ $('Filtrar hoy y armar resumen').item.json.asunto }}",
+    "message": "={{ $('Filtrar hoy y armar resumen').item.json.cuerpo_html }}",
+    "options": {
+     "attachmentsUi": {
+      "attachmentsBinary": [
+       {
+        "property": "data"
+       }
+      ]
+     }
+    }
+   },
+   "id": "4b3161a5-356d-43fe-a1a0-199cb21399ab",
+   "name": "Enviar resumen por correo",
+   "type": "n8n-nodes-base.gmail",
+   "typeVersion": 2.1,
+   "position": [
+    1728,
+    944
+   ],
+   "webhookId": "ff797972-6b05-424d-b370-700282274867",
+   "credentials": {
+    "gmailOAuth2": {
+     "id": "r79DBarhYuAEADPU",
+     "name": "Gmail account"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "jsCode": "const hoy = new Date().toISOString().slice(0,10);\nconst filas = $input.all().map(i => i.json).filter(r => {\n  if (!r.Fecha) return false;\n  const f = (r.Fecha instanceof Date) ? r.Fecha.toISOString().slice(0,10) : String(r.Fecha).slice(0,10);\n  return f === hoy;\n});\nif (filas.length === 0) {\n  return [{ json: { Fecha: hoy, Campo: '', Lote: '', Actividad: '', Responsable: '', 'N° Jornaleros': '', 'Procedencia / Cuadrilla': '', 'Recursos / Maquinaria': '', 'Costo por Jornal': '', 'Nómina Total': '', Observaciones: 'Sin registros para hoy' } }];\n}\nreturn filas.map(r => ({ json: r }));"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1024,
+    928
+   ],
+   "id": "8d195f65-0236-41bd-a76b-6dc0c981b663",
+   "name": "Code in JavaScript"
+  },
+  {
+   "parameters": {
+    "operation": "xlsx",
+    "options": {}
+   },
+   "type": "n8n-nodes-base.convertToFile",
+   "typeVersion": 1.1,
+   "position": [
+    1312,
+    928
+   ],
+   "id": "d9a5b1b7-a613-40bd-a5ca-98936531d698",
+   "name": "Convert to File"
+  },
+  {
+   "parameters": {
+    "path": "bot-web",
+    "responseMode": "responseNode",
+    "options": {}
+   },
+   "id": "b1a10001-0000-4000-8000-000000000001",
+   "name": "Webhook - Pagina del bot (GET)",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "position": [
+    240,
+    128
+   ],
+   "webhookId": "b1a10001-aaaa-bbbb-cccc-000000000001"
+  },
+  {
+   "parameters": {
+    "respondWith": "text",
+    "responseBody": "<!doctype html>\n<html lang=\"es\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Agro PYME - Bot de Captura</title>\n<style>\n  body { font-family: system-ui, sans-serif; background:#f4f6f3; margin:0; padding:24px; color:#20301f; }\n  .card { max-width:520px; margin:0 auto 16px; background:#fff; border-radius:14px; padding:24px; box-shadow:0 2px 10px rgba(0,0,0,.08); }\n  h1 { font-size:1.25rem; margin:0 0 4px; }\n  h2 { font-size:1.05rem; margin:0 0 10px; }\n  p.sub { color:#5a6b57; margin:0 0 20px; font-size:.9rem; }\n  label { display:block; font-size:.82rem; color:#45564a; margin:10px 0 4px; }\n  input[type=text], textarea, select { width:100%; border:1px solid #cfd8cc; border-radius:8px; padding:10px; font-size:1rem; box-sizing:border-box; }\n  textarea { min-height:90px; resize:vertical; }\n  button { width:100%; margin-top:12px; padding:14px; border:none; border-radius:8px; font-size:1rem; font-weight:600; cursor:pointer; }\n  #btnTexto { background:#2e7d32; color:#fff; }\n  #btnAudio { background:#1565c0; color:#fff; }\n  #btnAudio.grabando { background:#c62828; }\n  #btnGuardar { background:#2e7d32; color:#fff; }\n  #btnCancelar { background:#eceeea; color:#20301f; }\n  .histBtn { background:#455a64; color:#fff; margin-top:8px; }\n  #estado { margin-top:16px; padding:12px; border-radius:8px; font-size:.9rem; white-space:pre-wrap; display:none; }\n  #estado.ok { background:#e8f5e9; color:#1b5e20; display:block; }\n  #estado.err { background:#ffebee; color:#b71c1c; display:block; }\n  #estado.wait { background:#fff8e1; color:#7a5c00; display:block; }\n  [hidden] { display:none !important; }\n  .histItem { border-bottom:1px solid #eee; padding:8px 0; font-size:.85rem; }\n  .histItem:last-child { border-bottom:none; }\n</style>\n</head>\n<body>\n\n<div class=\"card\">\n  <h1>Agro PYME - Captura de reportes</h1>\n  <p class=\"sub\">Escribe o graba un mensaje de voz describiendo la actividad, rendimiento o jornaleros del dia.</p>\n  <label for=\"nombre\">Tu nombre</label>\n  <input type=\"text\" id=\"nombre\" placeholder=\"Ej: Carlos Verde\">\n</div>\n\n<div class=\"card\" id=\"captura\">\n  <textarea id=\"texto\" placeholder=\"Ej: Hoy en Pedregoza cortamos 40 arboles de mango con 6 jornaleros, meta eran 50...\"></textarea>\n  <button id=\"btnTexto\">Enviar texto</button>\n  <button id=\"btnAudio\">Grabar audio</button>\n  <div id=\"estado\"></div>\n</div>\n\n<div class=\"card\" id=\"preview\" hidden>\n  <h2>Revisa antes de guardar</h2>\n  <label for=\"selTabla\">Tipo de reporte</label>\n  <select id=\"selTabla\">\n    <option value=\"reporte_campo\">Reporte de Campo (rendimiento / incidencias)</option>\n    <option value=\"actividades_diarias\">Actividades Diarias (jornaleros / nomina)</option>\n  </select>\n  <div id=\"campos\"></div>\n  <button id=\"btnGuardar\">Confirmar y guardar</button>\n  <button id=\"btnCancelar\">Cancelar</button>\n</div>\n\n<div class=\"card\">\n  <h2>Ver ultimos registros</h2>\n  <button class=\"histBtn\" id=\"histCampo\">Ver ultimos: Reporte de Campo</button>\n  <button class=\"histBtn\" id=\"histActividades\">Ver ultimos: Actividades Diarias</button>\n  <div id=\"histResultado\"></div>\n</div>\n\n<script>\nconst baseUrl = window.location.href.replace(/\\/bot-web$/, '');\nconst mensajeUrl = baseUrl + '/bot-web-mensaje';\nconst guardarUrl = baseUrl + '/bot-web-guardar';\nconst historialUrl = baseUrl + '/bot-web-historial';\n\nconst CAMPOS_REPORTE_CAMPO = [\n  ['Fecha','Fecha'], ['Actividad','Actividad'], ['Ubicacion','Ubicacion'], ['Huerta','Huerta'],\n  ['Responsable','Responsable'], ['NumeroDePersonas','N de personas'], ['CantidadRealizada','Cantidad realizada'],\n  ['UnidadDeMedida','Unidad de medida'], ['MetaDeRendimiento','Meta de rendimiento'], ['Incidencia','Incidencia (Si/No)'],\n  ['MotivoDeIncidencia','Motivo de incidencia'], ['Observaciones','Observaciones']\n];\nconst CAMPOS_ACTIVIDADES = [\n  ['Fecha','Fecha'], ['Campo','Campo'], ['Lote','Lote'], ['Actividad','Actividad'], ['Responsable','Responsable'],\n  ['NumeroJornaleros','N de jornaleros'], ['ProcedenciaCuadrilla','Procedencia / cuadrilla'],\n  ['RecursosMaquinaria','Recursos / maquinaria'], ['CostoPorJornal','Costo por jornal'], ['NominaTotal','Nomina total'],\n  ['Observaciones','Observaciones']\n];\n\nconst estado = document.getElementById('estado');\nconst capturaCard = document.getElementById('captura');\nconst previewCard = document.getElementById('preview');\nconst camposDiv = document.getElementById('campos');\nconst selTabla = document.getElementById('selTabla');\nconst nombreInput = document.getElementById('nombre');\n\ntry {\n  const guardado = localStorage.getItem('agro_bot_nombre');\n  if (guardado) nombreInput.value = guardado;\n} catch (e) {}\nnombreInput.addEventListener('change', () => {\n  try { localStorage.setItem('agro_bot_nombre', nombreInput.value); } catch (e) {}\n});\n\nfunction mostrar(clase, texto) {\n  estado.className = clase;\n  estado.textContent = texto;\n}\n\nlet camposActuales = {};\nlet textoTranscritoActual = '';\n\nfunction renderCampos(tabla) {\n  const lista = tabla === 'reporte_campo' ? CAMPOS_REPORTE_CAMPO : CAMPOS_ACTIVIDADES;\n  camposDiv.innerHTML = '';\n  lista.forEach(([clave, etiqueta]) => {\n    const label = document.createElement('label');\n    label.textContent = etiqueta;\n    const input = document.createElement('input');\n    input.type = 'text';\n    input.dataset.clave = clave;\n    input.value = (camposActuales[clave] !== undefined && camposActuales[clave] !== null) ? camposActuales[clave] : '';\n    camposDiv.appendChild(label);\n    camposDiv.appendChild(input);\n  });\n}\n\nselTabla.addEventListener('change', () => renderCampos(selTabla.value));\n\nasync function enviarMensaje(payload) {\n  mostrar('wait', 'Procesando con IA, un momento...');\n  try {\n    const res = await fetch(mensajeUrl, {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify(payload)\n    });\n    const data = await res.json();\n    if (!data.ok) { mostrar('err', data.mensaje || 'No se pudo procesar.'); return; }\n    camposActuales = data.campos || {};\n    textoTranscritoActual = data.texto_transcrito || '';\n    const tablaDetectada = (data.tabla === 'reporte_campo' || data.tabla === 'actividades_diarias') ? data.tabla : 'actividades_diarias';\n    selTabla.value = tablaDetectada;\n    renderCampos(tablaDetectada);\n    capturaCard.hidden = true;\n    previewCard.hidden = false;\n    estado.className = ''; estado.style.display = 'none';\n    if (data.tabla === 'no_identificada') {\n      mostrar('wait', 'No se identifico el tipo de reporte solo, revisa/completa los campos y elige el tipo correcto.');\n      previewCard.appendChild(estado);\n    }\n  } catch (e) {\n    mostrar('err', 'No se pudo enviar: ' + e.message);\n  }\n}\n\ndocument.getElementById('btnTexto').addEventListener('click', () => {\n  const texto = document.getElementById('texto').value.trim();\n  if (!texto) { mostrar('err', 'Escribe algo primero.'); return; }\n  enviarMensaje({ tipo: 'texto', texto });\n  document.getElementById('texto').value = '';\n});\n\nlet mediaRecorder, chunks = [];\nconst btnAudio = document.getElementById('btnAudio');\nbtnAudio.addEventListener('click', async () => {\n  if (mediaRecorder && mediaRecorder.state === 'recording') {\n    mediaRecorder.stop();\n    return;\n  }\n  try {\n    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });\n    chunks = [];\n    mediaRecorder = new MediaRecorder(stream);\n    mediaRecorder.ondataavailable = e => chunks.push(e.data);\n    mediaRecorder.onstop = () => {\n      stream.getTracks().forEach(t => t.stop());\n      btnAudio.classList.remove('grabando');\n      btnAudio.textContent = 'Grabar audio';\n      const blob = new Blob(chunks, { type: mediaRecorder.mimeType || 'audio/webm' });\n      const reader = new FileReader();\n      reader.onloadend = () => {\n        const base64 = reader.result.split(',')[1];\n        enviarMensaje({ tipo: 'audio', audio_base64: base64, mime_type: blob.type || 'audio/webm' });\n      };\n      reader.readAsDataURL(blob);\n    };\n    mediaRecorder.start();\n    btnAudio.classList.add('grabando');\n    btnAudio.textContent = 'Detener y enviar';\n    mostrar('wait', 'Grabando... presiona de nuevo para enviar.');\n  } catch (e) {\n    mostrar('err', 'No se pudo acceder al microfono: ' + e.message);\n  }\n});\n\ndocument.getElementById('btnCancelar').addEventListener('click', () => {\n  previewCard.hidden = true;\n  capturaCard.hidden = false;\n  estado.style.display = 'none';\n});\n\ndocument.getElementById('btnGuardar').addEventListener('click', async () => {\n  const inputs = camposDiv.querySelectorAll('input');\n  const camposEditados = {};\n  inputs.forEach(inp => { camposEditados[inp.dataset.clave] = inp.value; });\n  mostrar('wait', 'Guardando...');\n  previewCard.appendChild(estado);\n  try {\n    const res = await fetch(guardarUrl, {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify({\n        tabla: selTabla.value,\n        campos: camposEditados,\n        reportado_por: nombreInput.value || '',\n        texto_transcrito: textoTranscritoActual\n      })\n    });\n    const data = await res.json();\n    previewCard.hidden = true;\n    capturaCard.hidden = false;\n    capturaCard.appendChild(estado);\n    mostrar(data.ok === false ? 'err' : 'ok', data.mensaje || 'Guardado.');\n  } catch (e) {\n    mostrar('err', 'No se pudo guardar: ' + e.message);\n  }\n});\n\nfunction renderHistorial(registros) {\n  const cont = document.getElementById('histResultado');\n  if (!registros || registros.length === 0) {\n    cont.innerHTML = '<p class=\"sub\">Sin registros.</p>';\n    return;\n  }\n  cont.innerHTML = registros.map(r => {\n    const partes = Object.entries(r).filter(([k,v]) => v !== '' && v !== null && v !== undefined).slice(0, 6);\n    return '<div class=\"histItem\">' + partes.map(([k,v]) => '<b>' + k + ':</b> ' + v).join(' | ') + '</div>';\n  }).join('');\n}\n\nasync function verHistorial(tabla) {\n  const cont = document.getElementById('histResultado');\n  cont.innerHTML = '<p class=\"sub\">Cargando...</p>';\n  try {\n    const res = await fetch(historialUrl + '?tabla=' + tabla);\n    const data = await res.json();\n    renderHistorial(data.registros);\n  } catch (e) {\n    cont.innerHTML = '<p class=\"sub\">Error: ' + e.message + '</p>';\n  }\n}\n\ndocument.getElementById('histCampo').addEventListener('click', () => verHistorial('reporte_campo'));\ndocument.getElementById('histActividades').addEventListener('click', () => verHistorial('actividades_diarias'));\n</script>\n</body>\n</html>\n",
+    "options": {
+     "responseHeaders": {
+      "entries": [
+       {
+        "name": "Content-Type",
+        "value": "text/html; charset=utf-8"
+       }
+      ]
+     }
+    }
+   },
+   "id": "b1a10002-0000-4000-8000-000000000002",
+   "name": "Responder pagina HTML",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1,
+   "position": [
+    480,
+    128
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({ ok: true, mensaje: $json.mensaje_confirmacion }) }}",
+    "options": {}
+   },
+   "id": "b1a10003-0000-4000-8000-000000000003",
+   "name": "Responder OK (Reporte Campo)",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1,
+   "position": [
+    3392,
+    320
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({ ok: true, mensaje: $json.mensaje_confirmacion }) }}",
+    "options": {}
+   },
+   "id": "b1a10004-0000-4000-8000-000000000004",
+   "name": "Responder OK (Actividades Diarias)",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1,
+   "position": [
+    3632,
+    640
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({ ok: false, mensaje: $json.mensaje_confirmacion }) }}",
+    "options": {}
+   },
+   "id": "b1a10005-0000-4000-8000-000000000005",
+   "name": "Responder no entendido",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1,
+   "position": [
+    3392,
+    864
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## Bot Web (sin Meta)\n\nEsta version YA NO depende de WhatsApp/Meta.\n\n1. Abre en el navegador la URL del webhook GET (`.../webhook/bot-web`) para ver la pagina.\n2. Escribe o graba un mensaje de voz.\n3. El flujo manda el texto/audio directo a Gemini (misma logica de siempre) y responde en la misma pagina.\n\nSolo necesitas la credencial de Gemini (Query Auth) configurada en los nodos 'Gemini (...)'.",
+    "height": 260,
+    "width": 380
+   },
+   "id": "b1a10006-0000-4000-8000-000000000006",
+   "name": "Nota: Bot Web (sin Meta)",
+   "type": "n8n-nodes-base.stickyNote",
+   "typeVersion": 1,
+   "position": [
+    200,
+    -140
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({ ok: true, tabla: $json.tabla, confianza: $json.confianza, texto_transcrito: $json.texto_transcrito, campos: $json.campos }) }}",
+    "options": {}
+   },
+   "id": "c2a20001-0000-4000-8000-000000000001",
+   "name": "Responder Preview",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1,
+   "position": [
+    2672,
+    200
+   ]
+  },
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "bot-web-guardar",
+    "responseMode": "responseNode",
+    "options": {
+     "allowedOrigins": "*"
+    }
+   },
+   "id": "c2a20002-0000-4000-8000-000000000002",
+   "name": "Webhook - Guardar confirmado (POST)",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "position": [
+    224,
+    1520
+   ],
+   "webhookId": "c2a20002-aaaa-bbbb-cccc-000000000002"
+  },
+  {
+   "parameters": {
+    "assignments": {
+     "assignments": [
+      {
+       "id": "g1",
+       "name": "tabla",
+       "type": "string",
+       "value": "={{ $json.body.tabla }}"
+      },
+      {
+       "id": "g2",
+       "name": "campos",
+       "type": "object",
+       "value": "={{ $json.body.campos }}"
+      },
+      {
+       "id": "g3",
+       "name": "reportado_por",
+       "type": "string",
+       "value": "={{ $json.body.reportado_por || '' }}"
+      },
+      {
+       "id": "g4",
+       "name": "texto_transcrito",
+       "type": "string",
+       "value": "={{ $json.body.texto_transcrito || '' }}"
+      },
+      {
+       "id": "g5",
+       "name": "canal",
+       "type": "string",
+       "value": "web"
+      },
+      {
+       "id": "g6",
+       "name": "whatsapp_from",
+       "type": "string",
+       "value": ""
+      },
+      {
+       "id": "g7",
+       "name": "whatsapp_phone_number_id",
+       "type": "string",
+       "value": ""
+      }
+     ]
+    },
+    "options": {}
+   },
+   "id": "c2a20003-0000-4000-8000-000000000003",
+   "name": "Preparar guardado confirmado",
+   "type": "n8n-nodes-base.set",
+   "typeVersion": 3.4,
+   "position": [
+    480,
+    1520
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": false,
+      "leftValue": "",
+      "typeValidation": "loose",
+      "version": 1
+     },
+     "combinator": "and",
+     "conditions": [
+      {
+       "id": "i1",
+       "leftValue": "={{ $('Es Reporte de Campo?').item.json.campos.Incidencia }}",
+       "rightValue": "si",
+       "operator": {
+        "type": "string",
+        "operation": "startsWith"
+       }
+      }
+     ]
+    },
+    "options": {}
+   },
+   "id": "c2a20004-0000-4000-8000-000000000004",
+   "name": "Hay incidencia?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2,
+   "position": [
+    3392,
+    60
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const c = $('Es Reporte de Campo?').item.json.campos;\nconst asunto = 'Incidencia reportada - ' + (c.Fecha || new Date().toISOString().slice(0,10));\nconst cuerpo = 'Se reporto una incidencia en campo.\\n\\n' +\n  'Fecha: ' + (c.Fecha || '-') + '\\n' +\n  'Huerta: ' + (c.Huerta || '-') + ' (' + (c.Ubicacion || '-') + ')\\n' +\n  'Actividad: ' + (c.Actividad || '-') + '\\n' +\n  'Responsable: ' + (c.Responsable || '-') + '\\n' +\n  'Motivo: ' + (c.MotivoDeIncidencia || '-') + '\\n' +\n  'Observaciones: ' + (c.Observaciones || '-') + '\\n' +\n  'Reportado por: ' + ($('Es Reporte de Campo?').item.json.reportado_por || '-');\nreturn [{ json: { asunto_incidencia: asunto, cuerpo_incidencia: cuerpo } }];"
+   },
+   "id": "c2a20005-0000-4000-8000-000000000005",
+   "name": "Armar alerta incidencia",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    3632,
+    60
+   ]
+  },
+  {
+   "parameters": {
+    "sendTo": "fernandovilla200215@gmail.com",
+    "subject": "={{ $json.asunto_incidencia }}",
+    "message": "={{ $json.cuerpo_incidencia }}",
+    "options": {}
+   },
+   "id": "c2a20006-0000-4000-8000-000000000006",
+   "name": "Enviar alerta incidencia",
+   "type": "n8n-nodes-base.gmail",
+   "typeVersion": 2.1,
+   "position": [
+    3872,
+    60
+   ],
+   "credentials": {
+    "gmailOAuth2": {
+     "id": "r79DBarhYuAEADPU",
+     "name": "Gmail account"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "path": "bot-web-historial",
+    "responseMode": "responseNode",
+    "options": {
+     "allowedOrigins": "*"
+    }
+   },
+   "id": "c2a20007-0000-4000-8000-000000000007",
+   "name": "Webhook - Historial (GET)",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "position": [
+    240,
+    1920
+   ],
+   "webhookId": "c2a20007-aaaa-bbbb-cccc-000000000007"
+  },
+  {
+   "parameters": {
+    "jsCode": "const tabla = ($input.item.json.query && $input.item.json.query.tabla) || 'actividades_diarias';\nconst conf = tabla === 'reporte_campo'\n  ? { documentId: '1rledplnYjPDTT_OgLTyNaXvSQS7Cn43v', sheetName: 'Rendimiento Diario Jornal' }\n  : { documentId: '1pfSx99JEkGRDC9sRLdu6CkYjeS-SczwjlVrpc9bqATA', sheetName: 'Actividades Diarias' };\nreturn [{ json: { tabla, documentId: conf.documentId, sheetName: conf.sheetName } }];"
+   },
+   "id": "c2a20008-0000-4000-8000-000000000008",
+   "name": "Elegir tabla historial",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    480,
+    1920
+   ]
+  },
+  {
+   "parameters": {
+    "documentId": {
+     "__rl": true,
+     "value": "={{ $json.documentId }}",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "={{ $json.sheetName }}",
+     "mode": "name"
+    },
+    "options": {}
+   },
+   "id": "c2a20009-0000-4000-8000-000000000009",
+   "name": "Leer historial",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.5,
+   "position": [
+    720,
+    1920
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "13GhWmzNi6Qk4Oqk",
+     "name": "Google Sheets account"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "jsCode": "const filas = $input.all().map(i => i.json);\nconst ultimas = filas.slice(-8).reverse();\nreturn [{ json: { registros: ultimas } }];"
+   },
+   "id": "c2a2000a-0000-4000-8000-00000000000a",
+   "name": "Ultimos registros",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    960,
+    1920
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({ ok: true, registros: $json.registros }) }}",
+    "options": {}
+   },
+   "id": "c2a2000b-0000-4000-8000-00000000000b",
+   "name": "Responder historial",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1,
+   "position": [
+    1200,
+    1920
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## Mejoras agregadas\n\n1. **Confirmar antes de guardar**: el POST /bot-web-mensaje ya NO guarda directo, solo clasifica y regresa un preview editable. El guardado real pasa por /bot-web-guardar cuando el usuario confirma en la pagina.\n2. **Quien manda el reporte**: la pagina pide 'Tu nombre' (se guarda en el navegador) y se manda como 'reportado_por'. IMPORTANTE: agrega manualmente una columna 'Reportado por' en AMBAS hojas de Google Sheets (Rendimiento Diario Jornal y Actividades Diarias) para que se guarde ahi.\n3. **Aviso inmediato de incidencias**: si Incidencia empieza con 'Si', se manda un correo aparte al instante (nodo 'Enviar alerta incidencia'). Cambia el correo destino si quieres que no sea el mismo del resumen diario.\n4. **Ver ultimos registros**: nuevo webhook GET en /bot-web-historial?tabla=reporte_campo o actividades_diarias, usado por los botones de 'Ver ultimos' en la pagina.",
+    "height": 320,
+    "width": 480
+   },
+   "id": "c2a2000c-0000-4000-8000-00000000000c",
+   "name": "Nota: Mejoras agregadas",
+   "type": "n8n-nodes-base.stickyNote",
+   "typeVersion": 1,
+   "position": [
+    200,
+    1360
+   ]
+  },
+  {
+   "parameters": {
+    "content": "## WhatsApp / Meta (canal adicional)\n\n1. Crea la credencial 'Meta WhatsApp - Token' (Header Auth: Authorization = Bearer TU_TOKEN_PERMANENTE) y asignala en TODOS los nodos que dicen 'Graph API' o 'WhatsApp:'.\n2. En Meta for Developers, Callback URL = tu-dominio/webhook/whatsapp-agro, Verify Token = agroPYME2026secreto (o cambia el valor en el nodo 'Token valido?' para que coincida).\n3. Rellena PON_AQUI_NUMERO_WHATSAPP_DESTINO y PON_AQUI_EL_PHONE_NUMBER_ID_DE_WHATSAPP en el nodo 'WhatsApp: enviar resumen' (solo se usa para el resumen diario, las respuestas a mensajes ya usan el numero de quien escribio).\n4. WhatsApp y la pagina web (bot-web) funcionan en paralelo: ambos usan el mismo Gemini, las mismas hojas de Sheets, y el mismo aviso de incidencias.",
+    "height": 300,
+    "width": 480
+   },
+   "id": "m3ta000c-0000-4000-8000-00000000000c",
+   "name": "Nota: Configuracion Meta",
+   "type": "n8n-nodes-base.stickyNote",
+   "typeVersion": 1,
+   "position": [
+    200,
+    -900
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 1
+     },
+     "combinator": "and",
+     "conditions": [
+      {
+       "id": "c1",
+       "leftValue": "={{ $json.tipo }}",
+       "rightValue": "audio",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       }
+      }
+     ]
+    },
+    "options": {}
+   },
+   "id": "m3ta000d-0000-4000-8000-00000000000d",
+   "name": "Es audio? (WhatsApp)",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2,
+   "position": [
+    720,
+    -400
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 1
+     },
+     "combinator": "and",
+     "conditions": [
+      {
+       "id": "c1",
+       "leftValue": "={{ $json.canal }}",
+       "rightValue": "whatsapp",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       }
+      }
+     ]
+    },
+    "options": {}
+   },
+   "id": "m3ta000e-0000-4000-8000-00000000000e",
+   "name": "Es de WhatsApp (clasificar)?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2,
+   "position": [
+    2432,
+    -100
+   ]
+  },
+  {
+   "parameters": {
+    "path": "whatsapp-agro",
+    "responseMode": "responseNode",
+    "options": {}
+   },
+   "id": "m3ta0001-0000-4000-8000-000000000001",
+   "name": "Webhook - Verificacion Meta (GET)",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "position": [
+    240,
+    -700
+   ],
+   "webhookId": "m3ta0001-aaaa-bbbb-cccc-000000000001"
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 1
+     },
+     "combinator": "and",
+     "conditions": [
+      {
+       "id": "v1",
+       "leftValue": "={{ $json.query[\"hub.verify_token\"] }}",
+       "rightValue": "agroPYME2026secreto",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       }
+      }
+     ]
+    },
+    "options": {}
+   },
+   "id": "m3ta0002-0000-4000-8000-000000000002",
+   "name": "Token valido?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2,
+   "position": [
+    480,
+    -700
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "text",
+    "responseBody": "={{ $json.query[\"hub.challenge\"] }}",
+    "options": {}
+   },
+   "id": "m3ta0003-0000-4000-8000-000000000003",
+   "name": "Responder challenge",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1,
+   "position": [
+    720,
+    -760
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "text",
+    "responseBody": "Token invalido",
+    "options": {
+     "responseCode": 403
+    }
+   },
+   "id": "m3ta0004-0000-4000-8000-000000000004",
+   "name": "Rechazar verificacion",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1,
+   "position": [
+    720,
+    -620
+   ]
+  },
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "whatsapp-agro",
+    "options": {}
+   },
+   "id": "m3ta0005-0000-4000-8000-000000000005",
+   "name": "Webhook - Mensajes WhatsApp (POST)",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "position": [
+    240,
+    -400
+   ],
+   "webhookId": "m3ta0005-aaaa-bbbb-cccc-000000000005"
+  },
+  {
+   "parameters": {
+    "assignments": {
+     "assignments": [
+      {
+       "id": "w1",
+       "name": "from",
+       "type": "string",
+       "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.from }}"
+      },
+      {
+       "id": "w2",
+       "name": "tipo",
+       "type": "string",
+       "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.type }}"
+      },
+      {
+       "id": "w3",
+       "name": "texto_body",
+       "type": "string",
+       "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.text?.body || '' }}"
+      },
+      {
+       "id": "w4",
+       "name": "audio_id",
+       "type": "string",
+       "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.audio?.id || '' }}"
+      },
+      {
+       "id": "w5",
+       "name": "phone_number_id",
+       "type": "string",
+       "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.metadata?.phone_number_id }}"
+      }
+     ]
+    },
+    "options": {}
+   },
+   "id": "m3ta0006-0000-4000-8000-000000000006",
+   "name": "Extraer mensaje WhatsApp",
+   "type": "n8n-nodes-base.set",
+   "typeVersion": 3.4,
+   "position": [
+    480,
+    -400
+   ]
+  },
+  {
+   "parameters": {
+    "url": "=https://graph.facebook.com/v20.0/{{ $json.audio_id }}",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "options": {}
+   },
+   "id": "m3ta0007-0000-4000-8000-000000000007",
+   "name": "Obtener URL de audio (Graph API)",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    960,
+    -520
+   ]
+  },
+  {
+   "parameters": {
+    "url": "={{ $json.url }}",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "options": {
+     "response": {
+      "response": {
+       "responseFormat": "file"
+      }
+     }
+    }
+   },
+   "id": "m3ta0008-0000-4000-8000-000000000008",
+   "name": "Descargar audio",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1200,
+    -520
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const buffer = await this.helpers.getBinaryDataBuffer(0, 'data');\nconst mime = ($input.item.binary && $input.item.binary.data && $input.item.binary.data.mimeType) || 'audio/ogg';\nreturn [{ json: { audio_base64: buffer.toString('base64'), mime_type: mime } }];"
+   },
+   "id": "m3ta0009-0000-4000-8000-000000000009",
+   "name": "Audio a Base64",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1440,
+    -520
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const g = $json;\nconst origen = $('Extraer mensaje WhatsApp').item.json;\nreturn [{ json: {\n  tabla: g.tabla,\n  campos: g.campos,\n  reportado_por: 'WhatsApp ' + (origen.from || ''),\n  texto_transcrito: g.texto_transcrito,\n  canal: 'whatsapp',\n  whatsapp_from: origen.from,\n  whatsapp_phone_number_id: origen.phone_number_id,\n} }];"
+   },
+   "id": "m3ta000a-0000-4000-8000-00000000000a",
+   "name": "Preparar guardado WhatsApp",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    2672,
+    -400
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 1
+     },
+     "combinator": "and",
+     "conditions": [
+      {
+       "id": "c1",
+       "leftValue": "={{ $('Es Reporte de Campo?').item.json.canal }}",
+       "rightValue": "whatsapp",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       }
+      }
+     ]
+    },
+    "options": {}
+   },
+   "id": "m3ta0010-0000-4000-8000-000000000010",
+   "name": "Enviar por WhatsApp? (Reporte Campo)",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2,
+   "position": [
+    3632,
+    200
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 1
+     },
+     "combinator": "and",
+     "conditions": [
+      {
+       "id": "c1",
+       "leftValue": "={{ $('Es Reporte de Campo?').item.json.canal }}",
+       "rightValue": "whatsapp",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       }
+      }
+     ]
+    },
+    "options": {}
+   },
+   "id": "m3ta0011-0000-4000-8000-000000000011",
+   "name": "Enviar por WhatsApp? (Actividades Diarias)",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2,
+   "position": [
+    3872,
+    640
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 1
+     },
+     "combinator": "and",
+     "conditions": [
+      {
+       "id": "c1",
+       "leftValue": "={{ $('Es Reporte de Campo?').item.json.canal }}",
+       "rightValue": "whatsapp",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       }
+      }
+     ]
+    },
+    "options": {}
+   },
+   "id": "m3ta0012-0000-4000-8000-000000000012",
+   "name": "Enviar por WhatsApp? (no entendido)",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2,
+   "position": [
+    3632,
+    864
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "=https://graph.facebook.com/v20.0/{{ $('Es Reporte de Campo?').item.json.whatsapp_phone_number_id }}/messages",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $('Es Reporte de Campo?').item.json.whatsapp_from, type: 'text', text: { body: $json.mensaje_confirmacion } }) }}",
+    "options": {}
+   },
+   "id": "m3ta0013-0000-4000-8000-000000000013",
+   "name": "WhatsApp: confirmar (Reporte Campo)",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    3872,
+    200
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "=https://graph.facebook.com/v20.0/{{ $('Es Reporte de Campo?').item.json.whatsapp_phone_number_id }}/messages",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $('Es Reporte de Campo?').item.json.whatsapp_from, type: 'text', text: { body: $json.mensaje_confirmacion } }) }}",
+    "options": {}
+   },
+   "id": "m3ta0014-0000-4000-8000-000000000014",
+   "name": "WhatsApp: confirmar (Actividades Diarias)",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    4112,
+    640
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "=https://graph.facebook.com/v20.0/{{ $('Es Reporte de Campo?').item.json.whatsapp_phone_number_id }}/messages",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $('Es Reporte de Campo?').item.json.whatsapp_from, type: 'text', text: { body: $json.mensaje_confirmacion } }) }}",
+    "options": {}
+   },
+   "id": "m3ta0015-0000-4000-8000-000000000015",
+   "name": "WhatsApp: no entendido",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    3872,
+    864
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "=https://graph.facebook.com/v20.0/PON_AQUI_EL_PHONE_NUMBER_ID_DE_WHATSAPP/messages",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: 'PON_AQUI_NUMERO_WHATSAPP_DESTINO', type: 'text', text: { body: $json.cuerpo_texto } }) }}",
+    "options": {}
+   },
+   "id": "m3ta0016-0000-4000-8000-000000000016",
+   "name": "WhatsApp: enviar resumen",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    752,
+    1264
+   ]
+  }
+ ],
+ "pinData": {},
+ "connections": {
+  "Webhook - Pagina del bot (GET)": {
+   "main": [
+    [
+     {
+      "node": "Responder pagina HTML",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Webhook - Mensaje del bot (POST)": {
+   "main": [
+    [
+     {
+      "node": "Extraer mensaje",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Extraer mensaje": {
+   "main": [
+    [
+     {
+      "node": "Es audio?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Es audio?": {
+   "main": [
+    [
+     {
+      "node": "Preparar prompt (audio)",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Preparar prompt (texto)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Preparar prompt (audio)": {
+   "main": [
+    [
+     {
+      "node": "Gemini (audio): clasificar y extraer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Preparar prompt (texto)": {
+   "main": [
+    [
+     {
+      "node": "Gemini (texto): clasificar y extraer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Gemini (audio): clasificar y extraer": {
+   "main": [
+    [
+     {
+      "node": "Parsear respuesta Gemini",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Gemini (texto): clasificar y extraer": {
+   "main": [
+    [
+     {
+      "node": "Parsear respuesta Gemini",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Parsear respuesta Gemini": {
+   "main": [
+    [
+     {
+      "node": "Es de WhatsApp (clasificar)?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Es de WhatsApp (clasificar)?": {
+   "main": [
+    [
+     {
+      "node": "Preparar guardado WhatsApp",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Responder Preview",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Webhook - Guardar confirmado (POST)": {
+   "main": [
+    [
+     {
+      "node": "Preparar guardado confirmado",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Preparar guardado confirmado": {
+   "main": [
+    [
+     {
+      "node": "Es Reporte de Campo?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Webhook - Verificacion Meta (GET)": {
+   "main": [
+    [
+     {
+      "node": "Token valido?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Token valido?": {
+   "main": [
+    [
+     {
+      "node": "Responder challenge",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Rechazar verificacion",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Webhook - Mensajes WhatsApp (POST)": {
+   "main": [
+    [
+     {
+      "node": "Extraer mensaje WhatsApp",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Extraer mensaje WhatsApp": {
+   "main": [
+    [
+     {
+      "node": "Es audio? (WhatsApp)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Es audio? (WhatsApp)": {
+   "main": [
+    [
+     {
+      "node": "Obtener URL de audio (Graph API)",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Preparar prompt (texto)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Obtener URL de audio (Graph API)": {
+   "main": [
+    [
+     {
+      "node": "Descargar audio",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Descargar audio": {
+   "main": [
+    [
+     {
+      "node": "Audio a Base64",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Audio a Base64": {
+   "main": [
+    [
+     {
+      "node": "Preparar prompt (audio)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Preparar guardado WhatsApp": {
+   "main": [
+    [
+     {
+      "node": "Es Reporte de Campo?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Es Reporte de Campo?": {
+   "main": [
+    [
+     {
+      "node": "Guardar en Reporte de Campo",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Es Actividades Diarias?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Guardar en Reporte de Campo": {
+   "main": [
+    [
+     {
+      "node": "Armar confirmacion (Reporte Campo)",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Hay incidencia?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Armar confirmacion (Reporte Campo)": {
+   "main": [
+    [
+     {
+      "node": "Enviar por WhatsApp? (Reporte Campo)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Enviar por WhatsApp? (Reporte Campo)": {
+   "main": [
+    [
+     {
+      "node": "WhatsApp: confirmar (Reporte Campo)",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Responder OK (Reporte Campo)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Hay incidencia?": {
+   "main": [
+    [
+     {
+      "node": "Armar alerta incidencia",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Armar alerta incidencia": {
+   "main": [
+    [
+     {
+      "node": "Enviar alerta incidencia",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Es Actividades Diarias?": {
+   "main": [
+    [
+     {
+      "node": "Guardar en Actividades Diarias",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Armar mensaje (no entendido)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Guardar en Actividades Diarias": {
+   "main": [
+    [
+     {
+      "node": "Armar confirmacion (Actividades Diarias)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Armar confirmacion (Actividades Diarias)": {
+   "main": [
+    [
+     {
+      "node": "Enviar por WhatsApp? (Actividades Diarias)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Enviar por WhatsApp? (Actividades Diarias)": {
+   "main": [
+    [
+     {
+      "node": "WhatsApp: confirmar (Actividades Diarias)",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Responder OK (Actividades Diarias)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Armar mensaje (no entendido)": {
+   "main": [
+    [
+     {
+      "node": "Enviar por WhatsApp? (no entendido)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Enviar por WhatsApp? (no entendido)": {
+   "main": [
+    [
+     {
+      "node": "WhatsApp: no entendido",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Responder no entendido",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Webhook - Historial (GET)": {
+   "main": [
+    [
+     {
+      "node": "Elegir tabla historial",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Elegir tabla historial": {
+   "main": [
+    [
+     {
+      "node": "Leer historial",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Leer historial": {
+   "main": [
+    [
+     {
+      "node": "Ultimos registros",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Ultimos registros": {
+   "main": [
+    [
+     {
+      "node": "Responder historial",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Cada dia 8:00 PM (Mazatlan)": {
+   "main": [
+    [
+     {
+      "node": "Leer Actividades Diarias",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Leer Actividades Diarias": {
+   "main": [
+    [
+     {
+      "node": "Filtrar hoy y armar resumen",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Filtrar hoy y armar resumen": {
+   "main": [
+    [
+     {
+      "node": "Code in JavaScript",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "WhatsApp: enviar resumen",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Code in JavaScript": {
+   "main": [
+    [
+     {
+      "node": "Convert to File",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Convert to File": {
+   "main": [
+    [
+     {
+      "node": "Enviar resumen por correo",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "active": true,
+ "settings": {
+  "executionOrder": "v1",
+  "binaryMode": "separate"
+ },
+ "versionId": "8d0274e9-fc3f-4817-aef0-8982ca96b91c",
+ "meta": {
+  "templateCredsSetupCompleted": true,
+  "instanceId": "d794800ce0de5ab0051c734348c287f9ea7bf0dcc941f62b19fac7686c2bbf6c"
+ },
+ "nodeGroups": [],
+ "id": "Iumxv5EkpqVs280g",
+ "tags": []
+}

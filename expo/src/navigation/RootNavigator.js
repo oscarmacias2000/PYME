@@ -10,6 +10,7 @@ import LoginScreen from '../screens/LoginScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ProfileSettingsScreen from '../screens/ProfileSettingsScreen';
 import ChatbotScreen from '../screens/ChatbotScreen';
+import ReportesScreen from '../screens/ReportesScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,6 +28,7 @@ export default function RootNavigator() {
       <Stack.Screen name="Perfil" component={ProfileScreen} />
       <Stack.Screen name="PerfilConfig" component={ProfileSettingsScreen} />
       <Stack.Screen name="Chatbot" component={ChatbotScreen} />
+      <Stack.Screen name="Reportes" component={ReportesScreen} />
     </Stack.Navigator>
   );
 }

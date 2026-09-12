@@ -45,6 +45,11 @@ app.get('/api/services/:id', (req, res) => {
 });
 app.get('/api/docs', (req, res) => res.json({ docs: DOCS }));
 
+// Likes.
+let _likes = 0;
+app.get('/api/likes', (_, res) => res.json({ likes: _likes }));
+app.post('/api/likes', (_, res) => { _likes += 1; res.json({ likes: _likes }); });
+
 // Auth y contacto.
 app.use('/api/auth', authRoutes);
 app.use('/api/contact', contactRoutes);

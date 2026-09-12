@@ -2,3 +2,5 @@ app/node_modules/
 app/uploads/
 app/outputs/
 .env
+.env.example
+.docker-compose.yml

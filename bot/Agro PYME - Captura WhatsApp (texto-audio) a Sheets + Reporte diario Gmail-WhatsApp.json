@@ -1,0 +1,1164 @@
+{
+  "name": "Agro PYME - Captura WhatsApp (texto-audio) a Sheets + Reporte diario Gmail-WhatsApp",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Como funciona este flujo\n\n**Rama 1 (arriba, GET):** verificacion del webhook de Meta (WhatsApp Cloud API). Meta la llama una sola vez al configurar el Webhook.\n\n**Rama 2 (POST):** llegan los mensajes reales (texto o audio). Se transcribe/interpreta con Gemini, se clasifica en una de las 2 tablas, se guarda en Google Sheets y se responde por WhatsApp confirmando.\n\n**Rama 3 (abajo):** todos los dias a las 8:00 PM (hora Mazatlan) se lee la hoja 'Actividades Diarias', se arma un resumen del dia y se envia por Gmail y por WhatsApp.\n\n### Antes de activar el flujo, reemplaza:\n1. Token de verificacion del webhook (nodo IF 'Token valido?')\n2. Credencial 'Meta WhatsApp - Token' (Header Auth: Authorization = Bearer TU_TOKEN_PERMANENTE)\n3. Credencial 'Gemini API Key' (Query Auth: nombre del parametro = key, valor = tu API key de Google AI Studio)\n4. ID de la 2a hoja de Google Sheets (Actividades Diarias) y credencial de Google Sheets\n5. Credencial de Gmail y el correo destino\n6. Numero de WhatsApp destino y Phone Number ID emisor para el resumen diario\n",
+        "height": 480,
+        "width": 620
+      },
+      "id": "240eadc4-dd61-4f8d-b274-a6231c42fa09",
+      "name": "Nota: Como funciona este flujo",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Configurar en Meta for Developers\n\n- Callback URL: la URL de PRODUCCION de este webhook (path: whatsapp-agro)\n- Verify token: debe coincidir con el que pongas en el nodo IF 'Token valido?'\n- Suscribete al campo 'messages'\n- El token de acceso permanente (System User) va en la credencial Header Auth como: Authorization: Bearer TU_TOKEN\n",
+        "height": 260,
+        "width": 560
+      },
+      "id": "57b54f69-1785-4e8a-8ea5-25caebfc7a92",
+      "name": "Nota: Configuracion Meta",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Gemini\n\nUsa el modelo gemini-2.0-flash (soporta audio + texto).\nCrea tu API key en https://aistudio.google.com/app/apikey\nCredencial tipo 'Query Auth': nombre del parametro = key, valor = tu API key.",
+        "height": 220,
+        "width": 460
+      },
+      "id": "07f17b4f-03a2-4f75-a5e9-c136016345bd",
+      "name": "Nota: Gemini",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Google Sheets\n\nTabla 1 (Reporte de Campo) ya tiene ID configurado.\nTabla 2 (Actividades Diarias): sube tu archivo 'Actividades Agricolas Diarias.xlsx' a Google Drive como Google Sheet, comparte con tu cuenta de servicio/OAuth de n8n, y pega el ID en los 2 nodos de Google Sheets de esa tabla.",
+        "height": 220,
+        "width": 520
+      },
+      "id": "04b94d8e-7648-405e-8f01-27fec0df4f70",
+      "name": "Nota: Google Sheets",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Reporte diario (Gmail + WhatsApp)\n\nResume SOLO la tabla 'Actividades Diarias' (agente 2), tal como se pidio.\nCambia la hora del Schedule Trigger si no quieres las 8:00 PM.\nRellena: correo destino (nodo Gmail), numero de WhatsApp destino y Phone Number ID emisor (nodo HTTP 'WhatsApp: enviar resumen').",
+        "height": 220,
+        "width": 700
+      },
+      "id": "79cd4278-5ff3-438d-8ac2-adae7a30d831",
+      "name": "Nota: Reporte diario",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        1232
+      ]
+    },
+    {
+      "parameters": {
+        "path": "whatsapp-agro",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "da786d85-b086-4b52-aec5-5c56e93f8034",
+      "name": "Webhook - Verificacion (GET)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        208
+      ],
+      "webhookId": "fd330085-d2c4-4092-876b-94fc0e2a250d"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "{{ $json.query[\"hub.verify_token\"] }}",
+              "rightValue": "agroPYME2026secreto",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9ddb38e4-2ac2-4ebf-ac07-7a53b6e28dcb",
+      "name": "Token valido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        416,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query[\"hub.challenge\"] }}",
+        "options": {}
+      },
+      "id": "c95a7768-1898-4af5-8649-d92babb7d195",
+      "name": "Responder challenge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        752,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Token invalido",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "id": "7d8a2434-877e-40c1-b0e0-4ff68dc859fd",
+      "name": "Rechazar verificacion",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        752,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-agro",
+        "options": {}
+      },
+      "id": "4099acc1-da7a-4eb8-98f4-d45c58bcc053",
+      "name": "Webhook - Mensajes entrantes (POST)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        224,
+        560
+      ],
+      "webhookId": "ab446b52-1197-481d-bacc-3fa11dd5c7d6"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.type }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b4291b23-e2df-4d8f-9d78-16e3256bc64d",
+      "name": "Hay mensaje de texto/audio?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        512,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "from",
+              "type": "string",
+              "value": "={{ $json.body.entry[0].changes[0].value.messages[0].from }}"
+            },
+            {
+              "id": "a2",
+              "name": "tipo",
+              "type": "string",
+              "value": "={{ $json.body.entry[0].changes[0].value.messages[0].type }}"
+            },
+            {
+              "id": "a3",
+              "name": "texto_body",
+              "type": "string",
+              "value": "={{ $json.body.entry[0].changes[0].value.messages[0].text?.body || '' }}"
+            },
+            {
+              "id": "a4",
+              "name": "audio_id",
+              "type": "string",
+              "value": "={{ $json.body.entry[0].changes[0].value.messages[0].audio?.id || '' }}"
+            },
+            {
+              "id": "a5",
+              "name": "phone_number_id",
+              "type": "string",
+              "value": "={{ $json.body.entry[0].changes[0].value.metadata.phone_number_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e76b075c-9d1a-4d42-afd8-a880dbea634f",
+      "name": "Extraer mensaje",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        752,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.tipo }}",
+              "rightValue": "audio",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bed584ac-0b88-4b78-a84d-76006087937f",
+      "name": "Es audio?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        992,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v20.0/{{ $json.audio_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "9fb9f4ae-76b8-4c22-882a-1d9b1ff2f75a",
+      "name": "Obtener URL de audio (Graph API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1232,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "a9f7adc9-a14f-4266-a7af-7fdb002cc267",
+      "name": "Descargar audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1472,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const buffer = await this.helpers.getBinaryDataBuffer(0, 'data');\nconst mime = ($input.item.binary && $input.item.binary.data && $input.item.binary.data.mimeType) || 'audio/ogg';\nreturn [{ json: { audio_base64: buffer.toString('base64'), mime_type: mime } }];"
+      },
+      "id": "992db6f7-11f7-48a3-87dc-d381df4bdf05",
+      "name": "Audio a Base64",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1712,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const PROMPT = \"Eres un asistente que ayuda a capturar reportes agr\\u00edcolas de una PYME a partir de mensajes de WhatsApp (texto o audio ya transcrito).\\n\\nExisten DOS tablas posibles en las que se debe guardar la informaci\\u00f3n. Debes decidir a cu\\u00e1l corresponde el mensaje y extraer los campos exactos.\\n\\n=== TABLA 1: \\\"reporte_campo\\\" (Rendimiento Diario Jornal) ===\\n\\u00dasala cuando el mensaje hable de RENDIMIENTO de una actividad frente a una META (cantidad realizada, unidad de medida, % de cumplimiento) o reporte una INCIDENCIA (clima, falta de personal, falla de maquinaria, falta de insumos).\\nCampos a extraer (usa null si no se menciona):\\n- Fecha (formato YYYY-MM-DD; si dicen \\\"hoy\\\" usa la fecha actual, si dicen \\\"ayer\\\" usa la fecha actual menos 1 d\\u00eda)\\n- Actividad (valores t\\u00edpicos: Riego, Poda (Elevante), Poda (mecanica), Fertilizaci\\u00f3n, Cosecha, Fumigaci\\u00f3n, Desbarado; si no coincide usa el texto tal cual)\\n- Ubicacion (valores t\\u00edpicos: Pedregoza, Villa Uni\\u00f3n, Huajote)\\n- Huerta (valores t\\u00edpicos: La Adulta, Arroyo 1, Arroyo 2, Arroyo 3, Los Tamarindos, La Loma, La Carretera, Pozo 1, Pozo 2, Loma Baja, El Caballo, El Veterinario, Shumbe\\u00f1o, El Becerro, Beatriz, Shelma, La Brecha, Los Panales, Las Ca\\u00f1adas, Las Cuatas)\\n- Responsable (valores t\\u00edpicos: Carlos Verde, Saul Guzman, David Sarabia; si mencionan un nombre distinto, \\u00fasalo tal cual)\\n- NumeroDePersonas (n\\u00famero entero de personas/jornal)\\n- CantidadRealizada (n\\u00famero, lo que se logr\\u00f3)\\n- UnidadDeMedida (ej. \\u00e1rboles, ha, kg, litros)\\n- MetaDeRendimiento (n\\u00famero, la meta esperada, null si no se menciona)\\n- Incidencia (\\\"S\\u00ed\\\" o \\\"No\\\")\\n- MotivoDeIncidencia (valores t\\u00edpicos: Clima, Falta de personal, Falla de maquinaria, Falta de insumos, Otro; null si Incidencia es \\\"No\\\")\\n- Observaciones (texto libre, resume cualquier detalle adicional)\\n\\n=== TABLA 2: \\\"actividades_diarias\\\" (Programa de Actividades Diarias) ===\\n\\u00dasala cuando el mensaje hable de JORNALEROS, N\\u00d3MINA, CUADRILLA, PROCEDENCIA de la gente, o COSTO POR JORNAL \\u2014 es decir, control de personal y pago del d\\u00eda, m\\u00e1s que rendimiento contra una meta.\\nCampos a extraer (usa null si no se menciona):\\n- Fecha (formato YYYY-MM-DD; mismas reglas que arriba)\\n- Campo (valores t\\u00edpicos: Pedregoza, Duranguito, La Reforma, Zopilote)\\n- Lote (valores t\\u00edpicos: Loma Tamarindos, Los Tamarindos - Gabriel, El 30, La Loma, Panales, El Becerro, La Quebrada)\\n- Actividad (valores t\\u00edpicos: Corte de Mango, Rastreo, Desvarado, Fertilizaci\\u00f3n con Subsoleo, Sacando Troncones, Taspaneo de Mango, Quema de Cerco)\\n- Responsable (valores t\\u00edpicos: Ing. Sa\\u00fal Guzm\\u00e1n, Ing. Kevin Rend\\u00f3n, Alfonso Niebla, Gabriel Osuna)\\n- NumeroJornaleros (n\\u00famero entero)\\n- ProcedenciaCuadrilla (valores t\\u00edpicos: V\\u00edctor, Mono, Ram\\u00f3n y Pancho, Perusi, Jorge y Armando, \\u00c1ngel)\\n- RecursosMaquinaria (valores t\\u00edpicos: JD 60, JD 18, Tractor MF 285, Excavadora; null si no aplica)\\n- CostoPorJornal (n\\u00famero, pesos MXN; null si no se menciona)\\n- NominaTotal (n\\u00famero = NumeroJornaleros * CostoPorJornal si ambos existen, si no null)\\n- Observaciones (texto libre)\\n\\n=== FORMATO DE SALIDA ===\\nResponde \\u00daNICAMENTE con un JSON v\\u00e1lido (sin texto adicional, sin marcadores de c\\u00f3digo), con esta forma exacta:\\n{\\n  \\\"tabla\\\": \\\"reporte_campo\\\" | \\\"actividades_diarias\\\" | \\\"no_identificada\\\",\\n  \\\"confianza\\\": \\\"alta\\\" | \\\"media\\\" | \\\"baja\\\",\\n  \\\"texto_transcrito\\\": \\\"<transcripci\\u00f3n literal del audio, o el mismo texto si ya era texto>\\\",\\n  \\\"campos\\\": { ... \\u00fanicamente los campos de la tabla elegida, con las llaves EXACTAS listadas arriba ... }\\n}\\n\\nSi el mensaje no tiene relaci\\u00f3n con ninguna de las dos tablas, o es demasiado ambiguo, usa \\\"tabla\\\": \\\"no_identificada\\\" y \\\"campos\\\": {}.\\nLa fecha de hoy es {{FECHA_HOY}}.\\n\";\nconst hoy = new Date().toISOString().slice(0,10);\nconst promptFinal = PROMPT.replace('{{FECHA_HOY}}', hoy);\nreturn [{ json: { prompt: promptFinal, mime_type: $input.item.json.mime_type, audio_base64: $input.item.json.audio_base64 } }];"
+      },
+      "id": "182489bf-9f51-430a-9b9e-222a497b63a0",
+      "name": "Preparar prompt (audio)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1952,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "contentType": "=json",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "id": "c83de9cd-03b8-47a1-80c1-62e9d7a6b448",
+      "name": "Gemini (audio): clasificar y extraer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2192,
+        368
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "dzC4JJmI6XlwCBBQ",
+          "name": "Query Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const PROMPT = \"Eres un asistente que ayuda a capturar reportes agr\\u00edcolas de una PYME a partir de mensajes de WhatsApp (texto o audio ya transcrito).\\n\\nExisten DOS tablas posibles en las que se debe guardar la informaci\\u00f3n. Debes decidir a cu\\u00e1l corresponde el mensaje y extraer los campos exactos.\\n\\n=== TABLA 1: \\\"reporte_campo\\\" (Rendimiento Diario Jornal) ===\\n\\u00dasala cuando el mensaje hable de RENDIMIENTO de una actividad frente a una META (cantidad realizada, unidad de medida, % de cumplimiento) o reporte una INCIDENCIA (clima, falta de personal, falla de maquinaria, falta de insumos).\\nCampos a extraer (usa null si no se menciona):\\n- Fecha (formato YYYY-MM-DD; si dicen \\\"hoy\\\" usa la fecha actual, si dicen \\\"ayer\\\" usa la fecha actual menos 1 d\\u00eda)\\n- Actividad (valores t\\u00edpicos: Riego, Poda (Elevante), Poda (mecanica), Fertilizaci\\u00f3n, Cosecha, Fumigaci\\u00f3n, Desbarado; si no coincide usa el texto tal cual)\\n- Ubicacion (valores t\\u00edpicos: Pedregoza, Villa Uni\\u00f3n, Huajote)\\n- Huerta (valores t\\u00edpicos: La Adulta, Arroyo 1, Arroyo 2, Arroyo 3, Los Tamarindos, La Loma, La Carretera, Pozo 1, Pozo 2, Loma Baja, El Caballo, El Veterinario, Shumbe\\u00f1o, El Becerro, Beatriz, Shelma, La Brecha, Los Panales, Las Ca\\u00f1adas, Las Cuatas)\\n- Responsable (valores t\\u00edpicos: Carlos Verde, Saul Guzman, David Sarabia; si mencionan un nombre distinto, \\u00fasalo tal cual)\\n- NumeroDePersonas (n\\u00famero entero de personas/jornal)\\n- CantidadRealizada (n\\u00famero, lo que se logr\\u00f3)\\n- UnidadDeMedida (ej. \\u00e1rboles, ha, kg, litros)\\n- MetaDeRendimiento (n\\u00famero, la meta esperada, null si no se menciona)\\n- Incidencia (\\\"S\\u00ed\\\" o \\\"No\\\")\\n- MotivoDeIncidencia (valores t\\u00edpicos: Clima, Falta de personal, Falla de maquinaria, Falta de insumos, Otro; null si Incidencia es \\\"No\\\")\\n- Observaciones (texto libre, resume cualquier detalle adicional)\\n\\n=== TABLA 2: \\\"actividades_diarias\\\" (Programa de Actividades Diarias) ===\\n\\u00dasala cuando el mensaje hable de JORNALEROS, N\\u00d3MINA, CUADRILLA, PROCEDENCIA de la gente, o COSTO POR JORNAL \\u2014 es decir, control de personal y pago del d\\u00eda, m\\u00e1s que rendimiento contra una meta.\\nCampos a extraer (usa null si no se menciona):\\n- Fecha (formato YYYY-MM-DD; mismas reglas que arriba)\\n- Campo (valores t\\u00edpicos: Pedregoza, Duranguito, La Reforma, Zopilote)\\n- Lote (valores t\\u00edpicos: Loma Tamarindos, Los Tamarindos - Gabriel, El 30, La Loma, Panales, El Becerro, La Quebrada)\\n- Actividad (valores t\\u00edpicos: Corte de Mango, Rastreo, Desvarado, Fertilizaci\\u00f3n con Subsoleo, Sacando Troncones, Taspaneo de Mango, Quema de Cerco)\\n- Responsable (valores t\\u00edpicos: Ing. Sa\\u00fal Guzm\\u00e1n, Ing. Kevin Rend\\u00f3n, Alfonso Niebla, Gabriel Osuna)\\n- NumeroJornaleros (n\\u00famero entero)\\n- ProcedenciaCuadrilla (valores t\\u00edpicos: V\\u00edctor, Mono, Ram\\u00f3n y Pancho, Perusi, Jorge y Armando, \\u00c1ngel)\\n- RecursosMaquinaria (valores t\\u00edpicos: JD 60, JD 18, Tractor MF 285, Excavadora; null si no aplica)\\n- CostoPorJornal (n\\u00famero, pesos MXN; null si no se menciona)\\n- NominaTotal (n\\u00famero = NumeroJornaleros * CostoPorJornal si ambos existen, si no null)\\n- Observaciones (texto libre)\\n\\n=== FORMATO DE SALIDA ===\\nResponde \\u00daNICAMENTE con un JSON v\\u00e1lido (sin texto adicional, sin marcadores de c\\u00f3digo), con esta forma exacta:\\n{\\n  \\\"tabla\\\": \\\"reporte_campo\\\" | \\\"actividades_diarias\\\" | \\\"no_identificada\\\",\\n  \\\"confianza\\\": \\\"alta\\\" | \\\"media\\\" | \\\"baja\\\",\\n  \\\"texto_transcrito\\\": \\\"<transcripci\\u00f3n literal del audio, o el mismo texto si ya era texto>\\\",\\n  \\\"campos\\\": { ... \\u00fanicamente los campos de la tabla elegida, con las llaves EXACTAS listadas arriba ... }\\n}\\n\\nSi el mensaje no tiene relaci\\u00f3n con ninguna de las dos tablas, o es demasiado ambiguo, usa \\\"tabla\\\": \\\"no_identificada\\\" y \\\"campos\\\": {}.\\nLa fecha de hoy es {{FECHA_HOY}}.\\n\";\nconst hoy = new Date().toISOString().slice(0,10);\nconst promptFinal = PROMPT.replace('{{FECHA_HOY}}', hoy) + '\\n\\nMensaje del usuario (texto):\\n' + ($input.item.json.texto_body || '');\nreturn [{ json: { prompt: promptFinal } }];"
+      },
+      "id": "1fe14414-d5f8-4a01-9043-49ecfe3c55f6",
+      "name": "Preparar prompt (texto)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [ { parts: [ { text: $json.prompt } ] } ] }) }}",
+        "options": {}
+      },
+      "id": "98c1ef81-049b-47be-96db-0e5f92b3bb83",
+      "name": "Gemini (texto): clasificar y extraer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1472,
+        608
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "dzC4JJmI6XlwCBBQ",
+          "name": "Query Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = ($input.item.json.candidates && $input.item.json.candidates[0].content.parts[0].text) || '{}';\nconst cleaned = raw.replace(/```json/g, '').replace(/```/g, '').trim();\nlet data;\ntry { data = JSON.parse(cleaned); } catch (e) { data = { tabla: 'no_identificada', confianza: 'baja', texto_transcrito: raw, campos: {} }; }\nreturn [{ json: {\n  tabla: data.tabla || 'no_identificada',\n  confianza: data.confianza || 'baja',\n  texto_transcrito: data.texto_transcrito || '',\n  campos: data.campos || {},\n  from: $('Extraer mensaje').item.json.from,\n  phone_number_id: $('Extraer mensaje').item.json.phone_number_id,\n} }];"
+      },
+      "id": "40a5dbea-da6d-46b3-b8c8-ac61c0f7c7fd",
+      "name": "Parsear respuesta Gemini",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2432,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.tabla }}",
+              "rightValue": "reporte_campo",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e239e298-4c03-48ec-b31f-c49a1989b3fa",
+      "name": "Es Reporte de Campo?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2672,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.tabla }}",
+              "rightValue": "actividades_diarias",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "eff79554-ea12-416c-a784-2119c9117913",
+      "name": "Es Actividades Diarias?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2912,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1rledplnYjPDTT_OgLTyNaXvSQS7Cn43v",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Rendimiento Diario Jornal",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "0c3c632f-dc0b-4969-bce6-7ea3eb8e4f84",
+      "name": "Guardar en Reporte de Campo",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2912,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "13GhWmzNi6Qk4Oqk",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const c = $('Parsear respuesta Gemini').item.json.campos;\nconst texto = `Registro guardado en Reporte de Campo\\n` +\n  `Fecha: ${c.Fecha || '-'}\\n` +\n  `Actividad: ${c.Actividad || '-'}\\n` +\n  `Huerta: ${c.Huerta || '-'} (${c.Ubicacion || '-'})\\n` +\n  `Responsable: ${c.Responsable || '-'}\\n` +\n  `Personas: ${c.NumeroDePersonas ?? '-'}\\n` +\n  `Realizado: ${c.CantidadRealizada ?? '-'} ${c.UnidadDeMedida || ''} (meta: ${c.MetaDeRendimiento ?? '-'})\\n` +\n  `Incidencia: ${c.Incidencia || 'No'}${c.MotivoDeIncidencia ? ' - ' + c.MotivoDeIncidencia : ''}\\n` +\n  `Obs: ${c.Observaciones || '-'}`;\nreturn [{ json: { mensaje_confirmacion: texto, from: $('Parsear respuesta Gemini').item.json.from, phone_number_id: $('Parsear respuesta Gemini').item.json.phone_number_id } }];"
+      },
+      "id": "141322a4-8696-4c7e-a887-4ace37756501",
+      "name": "Armar confirmacion (Reporte Campo)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3152,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v20.0/{{ $json.phone_number_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.from, type: 'text', text: { body: $json.mensaje_confirmacion } }) }}",
+        "options": {}
+      },
+      "id": "fc310226-c7dc-4800-8b29-0127c5b1012e",
+      "name": "WhatsApp: confirmar (Reporte Campo)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3392,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1pfSx99JEkGRDC9sRLdu6CkYjeS-SczwjlVrpc9bqATA",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "=",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "04fae6a3-b0ee-4987-910b-3ac94114bf4b",
+      "name": "Guardar en Actividades Diarias",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3152,
+        640
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "13GhWmzNi6Qk4Oqk",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const c = $('Parsear respuesta Gemini').item.json.campos;\nconst texto = `Registro guardado en Actividades Diarias\\n` +\n  `Fecha: ${c.Fecha || '-'}\\n` +\n  `Campo/Lote: ${c.Campo || '-'} / ${c.Lote || '-'}\\n` +\n  `Actividad: ${c.Actividad || '-'}\\n` +\n  `Responsable: ${c.Responsable || '-'}\\n` +\n  `Jornaleros: ${c.NumeroJornaleros ?? '-'} (${c.ProcedenciaCuadrilla || '-'})\\n` +\n  `Recursos: ${c.RecursosMaquinaria || '-'}\\n` +\n  `Costo/jornal: ${c.CostoPorJornal ?? '-'} | Nomina: ${c.NominaTotal ?? '-'}\\n` +\n  `Obs: ${c.Observaciones || '-'}`;\nreturn [{ json: { mensaje_confirmacion: texto, from: $('Parsear respuesta Gemini').item.json.from, phone_number_id: $('Parsear respuesta Gemini').item.json.phone_number_id } }];"
+      },
+      "id": "d24aa1d3-3d54-4e22-87fc-93c619d21cf5",
+      "name": "Armar confirmacion (Actividades Diarias)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3392,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v20.0/{{ $json.phone_number_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.from, type: 'text', text: { body: $json.mensaje_confirmacion } }) }}",
+        "options": {}
+      },
+      "id": "a6657ab1-f4ef-4f16-b899-45cdc4e3734f",
+      "name": "WhatsApp: confirmar (Actividades Diarias)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3632,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const g = $('Parsear respuesta Gemini').item.json;\nconst texto = 'No pude identificar a que reporte pertenece tu mensaje. Intenta mencionar si es rendimiento/meta de una actividad, o jornaleros/nomina del dia.\\n\\nEntendi: ' + (g.texto_transcrito || '(sin texto)');\nreturn [{ json: { mensaje_confirmacion: texto, from: g.from, phone_number_id: g.phone_number_id } }];"
+      },
+      "id": "566c3e48-fed2-49b4-9185-1f8508e29208",
+      "name": "Armar mensaje (no entendido)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3152,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v20.0/{{ $json.phone_number_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.from, type: 'text', text: { body: $json.mensaje_confirmacion } }) }}",
+        "options": {}
+      },
+      "id": "6b7b8c1b-b471-4e87-acef-2d1bc4bfbc86",
+      "name": "WhatsApp: no entendido",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3392,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 20
+            }
+          ]
+        }
+      },
+      "id": "00b3f2e2-8ffe-41a2-81e8-6d2ebbe729af",
+      "name": "Cada dia 8:00 PM (Mazatlan)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        272,
+        1072
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1pfSx99JEkGRDC9sRLdu6CkYjeS-SczwjlVrpc9bqATA",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Actividades agricolas diarias",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "5bf8fa12-bd08-4275-b251-e1541f6af139",
+      "name": "Leer Actividades Diarias",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        512,
+        1072
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "13GhWmzNi6Qk4Oqk",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const hoy = new Date().toISOString().slice(0,10);\nconst filas = $input.all().map(i => i.json).filter(r => {\n  if (!r.Fecha) return false;\n  const f = (r.Fecha instanceof Date) ? r.Fecha.toISOString().slice(0,10) : String(r.Fecha).slice(0,10);\n  return f === hoy;\n});\nlet totalJornaleros = 0, totalNomina = 0;\nconst filasTexto = filas.map(r => {\n  totalJornaleros += Number(r['N° Jornaleros']) || 0;\n  totalNomina += Number(r['Nómina Total']) || 0;\n  return '- ' + (r.Campo||'-') + ' / ' + (r.Lote||'-') + ' - ' + (r.Actividad||'-') + ' (' + (r['N° Jornaleros']||0) + ' jornaleros, resp. ' + (r.Responsable||'-') + ')';\n}).join('\\n');\nconst cuerpo_texto = 'Resumen de Actividades Agricolas - ' + hoy + '\\n\\n' +\n  'Actividades registradas: ' + filas.length + '\\n' +\n  'Total jornaleros: ' + totalJornaleros + '\\n' +\n  'Nomina total estimada: $' + totalNomina.toFixed(2) + '\\n\\n' +\n  (filasTexto || 'Sin registros para hoy.');\nconst filasHtml = filas.map(r => '<tr><td>'+(r.Campo||'')+'</td><td>'+(r.Lote||'')+'</td><td>'+(r.Actividad||'')+'</td><td>'+(r.Responsable||'')+'</td><td>'+(r['N° Jornaleros']||'')+'</td><td>'+(r['Nómina Total']||'')+'</td></tr>').join('');\nconst cuerpo_html = '<h2>Resumen de Actividades Agricolas - ' + hoy + '</h2>' +\n  '<p>Actividades registradas: ' + filas.length + '<br>Total jornaleros: ' + totalJornaleros + '<br>Nomina total estimada: $' + totalNomina.toFixed(2) + '</p>' +\n  '<table border=\"1\" cellpadding=\"6\" cellspacing=\"0\"><tr><th>Campo</th><th>Lote</th><th>Actividad</th><th>Responsable</th><th>Jornaleros</th><th>Nomina</th></tr>' + filasHtml + '</table>';\nreturn [{ json: { asunto: 'Resumen diario de actividades agricolas - ' + hoy, cuerpo_texto, cuerpo_html, total_actividades: filas.length } }];"
+      },
+      "id": "fb2048a2-05c7-4238-a5be-503e8ce6ee58",
+      "name": "Filtrar hoy y armar resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        1072
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "fernandovilla200215@gmail.com",
+        "subject": "=={{ $('Filtrar hoy y armar resumen').item.json.asunto }}",
+        "message": "=={{ $('Filtrar hoy y armar resumen').item.json.cuerpo_html }}",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "id": "4b3161a5-356d-43fe-a1a0-199cb21399ab",
+      "name": "Enviar resumen por correo",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1728,
+        944
+      ],
+      "webhookId": "ff797972-6b05-424d-b370-700282274867",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "r79DBarhYuAEADPU",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v20.0/PON_AQUI_EL_PHONE_NUMBER_ID_DE_WHATSAPP/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: 'PON_AQUI_NUMERO_WHATSAPP_DESTINO', type: 'text', text: { body: $json.cuerpo_texto } }) }}",
+        "options": {}
+      },
+      "id": "a3b455a0-2b8c-4a28-9967-db637da071cf",
+      "name": "WhatsApp: enviar resumen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1424,
+        1264
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const hoy = new Date().toISOString().slice(0,10);\nconst filas = $input.all().map(i => i.json).filter(r => {\n  if (!r.Fecha) return false;\n  const f = (r.Fecha instanceof Date) ? r.Fecha.toISOString().slice(0,10) : String(r.Fecha).slice(0,10);\n  return f === hoy;\n});\nif (filas.length === 0) {\n  return [{ json: { Fecha: hoy, Campo: '', Lote: '', Actividad: '', Responsable: '', 'N° Jornaleros': '', 'Procedencia / Cuadrilla': '', 'Recursos / Maquinaria': '', 'Costo por Jornal': '', 'Nómina Total': '', Observaciones: 'Sin registros para hoy' } }];\n}\nreturn filas.map(r => ({ json: r }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        928
+      ],
+      "id": "8d195f65-0236-41bd-a76b-6dc0c981b663",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1312,
+        928
+      ],
+      "id": "d9a5b1b7-a613-40bd-a5ca-98936531d698",
+      "name": "Convert to File"
+    }
+  ],
+  "pinData": {
+    "Gemini (texto): clasificar y extraer": [
+      {
+        "json": {
+          "name": "First item",
+          "code": 1
+        }
+      },
+      {
+        "json": {
+          "name": "Second item",
+          "code": 2
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook - Verificacion (GET)": {
+      "main": [
+        [
+          {
+            "node": "Token valido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Token valido?": {
+      "main": [
+        [
+          {
+            "node": "Responder challenge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rechazar verificacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook - Mensajes entrantes (POST)": {
+      "main": [
+        [
+          {
+            "node": "Hay mensaje de texto/audio?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hay mensaje de texto/audio?": {
+      "main": [
+        [
+          {
+            "node": "Extraer mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer mensaje": {
+      "main": [
+        [
+          {
+            "node": "Es audio?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Es audio?": {
+      "main": [
+        [
+          {
+            "node": "Obtener URL de audio (Graph API)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preparar prompt (texto)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener URL de audio (Graph API)": {
+      "main": [
+        [
+          {
+            "node": "Descargar audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descargar audio": {
+      "main": [
+        [
+          {
+            "node": "Audio a Base64",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audio a Base64": {
+      "main": [
+        [
+          {
+            "node": "Preparar prompt (audio)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar prompt (audio)": {
+      "main": [
+        [
+          {
+            "node": "Gemini (audio): clasificar y extraer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar prompt (texto)": {
+      "main": [
+        [
+          {
+            "node": "Gemini (texto): clasificar y extraer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini (audio): clasificar y extraer": {
+      "main": [
+        [
+          {
+            "node": "Parsear respuesta Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini (texto): clasificar y extraer": {
+      "main": [
+        [
+          {
+            "node": "Parsear respuesta Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear respuesta Gemini": {
+      "main": [
+        [
+          {
+            "node": "Es Reporte de Campo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Es Reporte de Campo?": {
+      "main": [
+        [
+          {
+            "node": "Guardar en Reporte de Campo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Es Actividades Diarias?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar en Reporte de Campo": {
+      "main": [
+        [
+          {
+            "node": "Armar confirmacion (Reporte Campo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar confirmacion (Reporte Campo)": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp: confirmar (Reporte Campo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Es Actividades Diarias?": {
+      "main": [
+        [
+          {
+            "node": "Guardar en Actividades Diarias",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar mensaje (no entendido)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar en Actividades Diarias": {
+      "main": [
+        [
+          {
+            "node": "Armar confirmacion (Actividades Diarias)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar confirmacion (Actividades Diarias)": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp: confirmar (Actividades Diarias)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar mensaje (no entendido)": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp: no entendido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cada dia 8:00 PM (Mazatlan)": {
+      "main": [
+        [
+          {
+            "node": "Leer Actividades Diarias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Actividades Diarias": {
+      "main": [
+        [
+          {
+            "node": "Filtrar hoy y armar resumen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrar hoy y armar resumen": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp: enviar resumen",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Enviar resumen por correo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8d0274e9-fc3f-4817-aef0-8982ca96b91c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d794800ce0de5ab0051c734348c287f9ea7bf0dcc941f62b19fac7686c2bbf6c"
+  },
+  "nodeGroups": [],
+  "id": "Iumxv5EkpqVs280g",
+  "tags": []
+}

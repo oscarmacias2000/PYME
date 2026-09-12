@@ -1,4 +1,13 @@
 services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: chatbot-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
   app:
     build: ./app
     container_name: chatbot-app
@@ -6,6 +15,29 @@ services:
       - "3000:3000"
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
-      - GROQ_MODEL=${GROQ_MODEL:-llama-3.3-70b-versatile}
+      - GOOGLE_SHEET_ID=${GOOGLE_SHEET_ID}
+      - GOOGLE_SERVICE_ACCOUNT=${GOOGLE_SERVICE_ACCOUNT}
       - PORT=3000
+    volumes:
+      - ./app/outputs:/app/outputs
+    depends_on:
+      - ollama
     restart: unless-stopped
+
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: chatbot-openwebui
+    ports:
+      - "3001:8080"
+    volumes:
+      - open-webui:/app/backend/data
+    environment:
+      - OPENAI_API_KEY=local
+      - OPENAI_API_BASE_URL=http://app:3000/v1
+    depends_on:
+      - app
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+  open-webui:

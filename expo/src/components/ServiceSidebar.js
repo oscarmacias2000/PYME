@@ -1,81 +1,181 @@
 import { useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { SERVICES } from '../constants/services';
 
-// Sub-secciones que se muestran como hijos de cada servicio (estilo TOC).
-const SECTIONS = ['Que hacemos', 'Que incluye', 'Otros servicios'];
+const DEFAULT_SECTIONS = ['Que hacemos', 'Que incluye', 'Otros servicios'];
 
-/**
- * Sidebar tipo TOC de IBM docs: arbol de servicios con items expandibles
- * (chevron por item), hijos indentados y el servicio actual resaltado.
- */
+// ── Fila de item hoja ────────────────────────────────────────────────────────
+function LeafItem({ label }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <Pressable
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
+      style={{
+        marginLeft: 24,
+        borderLeftWidth: 1,
+        borderLeftColor: '#e0e0e0',
+        paddingVertical: 7,
+        paddingLeft: 16,
+        paddingRight: 8,
+        backgroundColor: hovered ? '#f4f4f4' : 'transparent',
+      }}
+    >
+      <Text style={{ fontFamily: 'IBMPlexMono', fontSize: 12, color: '#525252' }}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+// ── Grupo expandible ─────────────────────────────────────────────────────────
+function SidebarGroup({ group, icon, items, defaultOpen }) {
+  const [open, setOpen] = useState(defaultOpen ?? false);
+  return (
+    <View>
+      <Pressable
+        onPress={() => setOpen((v) => !v)}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 12,
+          paddingVertical: 8,
+          gap: 8,
+        }}
+      >
+        <Ionicons name={icon} size={14} color="#0f62fe" />
+        <Text style={{ flex: 1, fontSize: 12, fontWeight: '600', color: '#161616', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          {group}
+        </Text>
+        <Ionicons
+          name={open ? 'chevron-up' : 'chevron-down'}
+          size={13}
+          color="#8d8d8d"
+        />
+      </Pressable>
+      {open && (
+        <View style={{ paddingBottom: 4 }}>
+          {items.map((item) => (
+            <LeafItem key={item} label={item} />
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
+// ── Sidebar principal ────────────────────────────────────────────────────────
 export default function ServiceSidebar({ currentId, navigation }) {
-  const [expanded, setExpanded] = useState(currentId); // id del nodo abierto
+  const [expanded, setExpanded] = useState(currentId);
 
   return (
-    <View className="w-full self-start border border-carbon-gray20 dark:border-carbon-gray90 bg-white dark:bg-carbon-black md:w-[260px]">
-      <Text className="border-b border-carbon-gray20 dark:border-carbon-gray90 px-4 py-3 font-plexsemibold text-xs uppercase tracking-wide text-carbon-gray70 dark:text-carbon-gray20">
+    <View
+      style={{
+        width: 272,
+        alignSelf: 'flex-start',
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
+        backgroundColor: '#ffffff',
+      }}
+    >
+      {/* Encabezado */}
+      <Text
+        style={{
+          borderBottomWidth: 1,
+          borderBottomColor: '#e0e0e0',
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+          fontSize: 11,
+          fontWeight: '600',
+          textTransform: 'uppercase',
+          letterSpacing: 1,
+          color: '#525252',
+        }}
+      >
         Servicios
       </Text>
 
       {SERVICES.map((s) => {
         const active = s.id === currentId;
         const isOpen = expanded === s.id;
+        const hasDocs = Array.isArray(s.sidebar) && s.sidebar.length > 0;
+
         return (
           <View key={s.id}>
-            {/* Fila del nodo: label (link) + chevron (expandir) */}
+            {/* Fila del servicio */}
             <View
-              className={`flex-row items-stretch ${
-                active
-                  ? 'border-l-4 border-carbon-blue bg-carbon-gray10 dark:bg-carbon-gray90'
-                  : 'border-l-4 border-transparent'
-              }`}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'stretch',
+                borderLeftWidth: 4,
+                borderLeftColor: active ? '#0f62fe' : 'transparent',
+                backgroundColor: active ? '#edf5ff' : 'transparent',
+              }}
             >
               <Pressable
-                className="flex-1 py-3 pl-3 pr-2 hover:bg-carbon-gray10 dark:hover:bg-carbon-gray90"
+                style={{ flex: 1, paddingVertical: 10, paddingLeft: 10, paddingRight: 4 }}
                 onPress={() => navigation.navigate('Servicio', { id: s.id })}
               >
                 <Text
-                  className={`font-plex text-sm ${
-                    active
-                      ? 'font-plexsemibold text-carbon-blue'
-                      : 'text-carbon-black dark:text-white'
-                  }`}
+                  style={{
+                    fontSize: 13,
+                    fontWeight: active ? '600' : '400',
+                    color: active ? '#0f62fe' : '#161616',
+                  }}
                 >
                   {s.title}
                 </Text>
               </Pressable>
               <Pressable
-                className="items-center justify-center px-3 hover:bg-carbon-gray10 dark:hover:bg-carbon-gray90"
-                accessibilityLabel={isOpen ? 'Contraer' : 'Expandir'}
+                style={{ alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 }}
                 onPress={() => setExpanded(isOpen ? null : s.id)}
               >
                 <Ionicons
                   name={isOpen ? 'chevron-up' : 'chevron-down'}
-                  size={16}
+                  size={15}
                   color="#8d8d8d"
                 />
               </Pressable>
             </View>
 
-            {/* Hijos (secciones) indentados */}
-            {isOpen ? (
-              <View className="pb-1">
-                {SECTIONS.map((sec) => (
-                  <Pressable
-                    key={sec}
-                    onPress={() => navigation.navigate('Servicio', { id: s.id })}
-                    className="ml-6 border-l border-carbon-gray20 dark:border-carbon-gray90 py-2 pl-4 hover:bg-carbon-gray10 dark:hover:bg-carbon-gray90"
-                  >
-                    <Text className="font-plex text-[13px] text-carbon-gray70 dark:text-carbon-gray20">
-                      {sec}
-                    </Text>
-                  </Pressable>
-                ))}
+            {/* Contenido expandido */}
+            {isOpen && (
+              <View style={{ borderTopWidth: 1, borderTopColor: '#f4f4f4' }}>
+                {hasDocs ? (
+                  /* Árbol de documentación por grupos */
+                  s.sidebar.map((grp, idx) => (
+                    <SidebarGroup
+                      key={grp.group}
+                      group={grp.group}
+                      icon={grp.icon}
+                      items={grp.items}
+                      defaultOpen={idx === 0}
+                    />
+                  ))
+                ) : (
+                  /* Fallback: secciones genéricas */
+                  <View style={{ paddingBottom: 4 }}>
+                    {DEFAULT_SECTIONS.map((sec) => (
+                      <Pressable
+                        key={sec}
+                        onPress={() => navigation.navigate('Servicio', { id: s.id })}
+                        style={{
+                          marginLeft: 24,
+                          borderLeftWidth: 1,
+                          borderLeftColor: '#e0e0e0',
+                          paddingVertical: 8,
+                          paddingLeft: 16,
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, color: '#525252' }}>{sec}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
               </View>
-            ) : null}
+            )}
           </View>
         );
       })}

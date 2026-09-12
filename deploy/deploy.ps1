@@ -44,7 +44,7 @@ $APPS = @{
         # Sitios web > Administrar > Aplicaciones Node.js > Crear aplicacion). El panel
         # te va a asignar una carpeta remota propia -- pega esa ruta aqui en REMOTE_NODE.
         # REMOTE_PUBLIC/REMOTE_RESTART no hace falta tocarlos, se arman solos.
-        DOMAIN         = "CAMBIA_ESTO.buildwiselabs.net"
+        DOMAIN         = ""
         SFTP_HOST      = "82.198.232.179"
         SFTP_PORT      = 65002
         SFTP_USER      = "u695228895"

@@ -11,7 +11,7 @@ import Footer from '../Footer';
  *   Bloque a todo el ancho renderizado antes del contenido; recibe el
  *   desplazamiento vertical para animarse con el scroll.
  */
-export default function Screen({ children, hero }) {
+export default function Screen({ children, hero, prefooter }) {
   const insets = useSafeAreaInsets();
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -28,6 +28,7 @@ export default function Screen({ children, hero }) {
       >
         {hero ? hero(scrollY) : null}
         <View className="mx-auto w-full max-w-5xl px-5">{children}</View>
+        {prefooter ?? null}
         <Footer />
       </Animated.ScrollView>
     </View>
