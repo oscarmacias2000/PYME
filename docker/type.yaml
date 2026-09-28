@@ -21,3 +21,11 @@ jobs:
     parameters:
       template: traditional-html
       reportFile: reporte.html
+  - type: report
+    parameters:
+      template: traditional-md
+      reportFile: reporte.md
+  - type: forced-report
+    parameters:
+      template: traditional-json
+      reportFile: reporte.json
