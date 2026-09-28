@@ -1,0 +1,66 @@
+// Prisma + PostgreSQL para Agro PYME Bot.
+//
+// Pasos para usarlo:
+//   1) docker compose up -d db          -> levanta Postgres (ver docker-compose.yml)
+//   2) Pon la URL en DATABASE_URL (.env). Con el compose de este repo seria:
+//      DATABASE_URL="postgresql://agrobot:agrobot@localhost:5432/agrobot?schema=public"
+//   3) npm install && npx prisma generate
+//   4) npm run db:migrate               -> crea las tablas
+//   5) npm run db:seed-admin -- "Tu Nombre" tu_usuario tu_password_segura
+//
+// La base es OPCIONAL: sin DATABASE_URL el bot sigue con el login unico compartido
+// (ver services/prisma.js).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Usuarios individuales del equipo -- reemplaza el login unico compartido de antes
+// (admin / cambiame123). Cada quien entra con su propio usuario y contraseña.
+model Usuario {
+  id            Int        @id @default(autoincrement())
+  nombre        String
+  usuario       String     @unique
+  email         String?    @unique
+  passwordHash  String
+  // "admin" puede crear/desactivar otros usuarios en /usuarios, "usuario" solo captura
+  // reportes normalmente.
+  rol           String     @default("usuario")
+  activo        Boolean    @default(true)
+  creadoEn      DateTime   @default(now())
+  actualizadoEn DateTime   @updatedAt
+  registros     Registro[]
+
+  @@map("usuarios")
+}
+
+// Copia de auditoria de cada reporte guardado -- ADEMAS de lo que ya se escribe en
+// Google Sheets (Sheets sigue siendo la fuente que usa el equipo para formulas y
+// reportes). Esto es para poder revisar/auditar el historial completo aunque algo
+// falle al escribir en Sheets, y para saber que usuario capturo cada registro.
+model Registro {
+  id                    Int      @id @default(autoincrement())
+  // "reporte_campo" | "actividades_diarias" | "maquinaria" | "insumos"
+  tabla                 String
+  // Los campos que se mandaron a guardar (los mismos que van a la fila de Sheets),
+  // tal cual, para no tener que duplicar columna por columna aqui.
+  campos                Json
+  reportadoPor          String?
+  // "web" | "whatsapp"
+  canal                 String
+  textoTranscrito       String?  @db.Text
+  whatsappFrom          String?
+  whatsappPhoneNumberId String?
+  usuarioId             Int?
+  usuario               Usuario? @relation(fields: [usuarioId], references: [id])
+  creadoEn              DateTime @default(now())
+
+  @@index([tabla])
+  @@index([creadoEn])
+  @@map("registros")
+}

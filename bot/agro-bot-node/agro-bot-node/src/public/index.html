@@ -3,527 +3,349 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Agro PYME - Bot de Captura</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  body { font-family: 'Segoe UI', system-ui, sans-serif; }
-  .pill { transition: all .15s ease; }
-  .pill:not(.activa) { background:#f5f5f4; color:#57534e; border:1px solid #e7e5e4; }
-  .pill:not(.activa):hover { background:#e7e5e4; }
-  .pill.activa { background:#1c1917; color:#fff; box-shadow:0 2px 6px rgba(28,25,23,.25); }
-  [hidden] { display:none !important; }
-  ::-webkit-scrollbar { width:8px; height:8px; }
-  ::-webkit-scrollbar-thumb { background:#d6d3d1; border-radius:8px; }
-</style>
+<title>La Pedregoza - Bot de Captura</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png?v=2">
+<link rel="icon" href="/favicon.ico?v=2" sizes="any">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png?v=2">
+<script>
+  // Aplica el modo oscuro (si el usuario lo dejo activado la ultima vez) ANTES de que
+  // se pinte la pagina -- si esto se hiciera desde el bundle de abajo, se veria un
+  // parpadeo de claro-a-oscuro cada vez que se recarga la pagina.
+  try {
+    if (localStorage.getItem('agro_bot_tema') === 'oscuro') {
+      document.documentElement.classList.add('dark');
+    }
+  } catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/main.75e1a6a4.css">
 </head>
 <body class="bg-stone-50 min-h-screen text-stone-800 pb-16">
 
-<header class="bg-white border-b border-stone-100 px-6 py-4">
-  <div class="max-w-xl mx-auto flex items-center justify-between gap-3">
-    <div class="flex items-center gap-2">
-      <span class="text-xl">🌱</span>
-      <span class="font-semibold text-stone-800 tracking-tight">Agro PYME</span>
+<div id="splashCarga" class="fixed inset-0 z-50 bg-stone-50 flex flex-col items-center justify-center gap-5">
+  <img src="/img/mango-logo.png" alt="La Pedregoza" class="w-40 max-w-[55%] logo-pulse">
+  <div class="w-40 h-2 rounded-full skeleton-bar"></div>
+</div>
+
+<header class="bg-white border-b border-stone-100 shadow-sm px-4 sm:px-6 py-4">
+  <div class="max-w-5xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
+    <div class="flex items-center gap-2 min-w-0">
+      <button id="btnAbrirSidebar" type="button" class="md:hidden -ml-1 mr-1 shrink-0 text-stone-500 hover:text-stone-800 text-lg" aria-label="Abrir historial y actividad">☰</button>
+      <img src="/img/pedregoza-logo.png" alt="La Pedregoza" class="h-8 w-auto shrink-0">
+      <span class="hidden sm:inline font-semibold text-stone-800 tracking-tight whitespace-nowrap">La Pedregoza</span>
     </div>
-    <div class="relative shrink-0">
-      <button id="btnPerfil" type="button"
-        class="flex items-center gap-2 bg-stone-50 hover:bg-stone-100 border border-stone-200 rounded-full pl-1.5 pr-3 py-1.5 text-sm font-medium text-stone-700 transition">
-        <span id="avatarPerfil" class="w-6 h-6 rounded-full bg-stone-900 text-white font-bold flex items-center justify-center text-xs">?</span>
-        <span id="nombrePerfil">...</span>
-        <span class="text-xs text-stone-400">▾</span>
-      </button>
-      <div id="menuPerfil" class="absolute right-0 mt-2 w-48 bg-white border border-stone-100 text-stone-700 rounded-2xl shadow-lg py-1 text-sm z-10" hidden>
-        <a href="/actividad-en-vivo" class="block px-4 py-2 hover:bg-stone-50">📡 Actividad en vivo</a>
-        <button id="btnCerrarSesion" class="w-full text-left px-4 py-2 hover:bg-stone-50 rounded-2xl">Cerrar sesion</button>
+    <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+      <div class="relative shrink-0">
+        <button id="btnDocumentos" type="button"
+          class="flex items-center gap-1.5 bg-stone-50 hover:bg-stone-100 border border-stone-200 rounded-full px-3 py-1.5 text-sm font-medium text-stone-700 transition">
+          <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          <span class="hidden sm:inline">Documentos</span>
+          <span class="text-xs text-stone-400">▾</span>
+        </button>
+        <div id="menuDocumentos" class="absolute left-0 mt-2 w-72 bg-white border border-stone-100 text-stone-700 rounded-2xl shadow-soft-lg py-2 text-sm z-10" hidden>
+          <p class="text-xs font-semibold text-stone-400 uppercase tracking-wide px-4 pt-1 pb-2">Documentos</p>
+          <div id="listaDocumentos" class="px-2 pb-2 space-y-1">
+            <div class="px-2 py-1 space-y-1.5">
+              <div class="skeleton-line w-full"></div>
+              <div class="skeleton-line w-2/3"></div>
+            </div>
+          </div>
+        </div>
       </div>
+      <div class="relative shrink-0">
+        <button id="btnPerfil" type="button"
+          class="flex items-center gap-2 bg-stone-50 hover:bg-stone-100 border border-stone-200 rounded-full pl-1.5 pr-3 py-1.5 text-sm font-medium text-stone-700 transition">
+          <span class="relative w-6 h-6 shrink-0">
+            <span id="avatarPerfil" class="w-6 h-6 rounded-full bg-stone-900 text-white font-bold flex items-center justify-center text-xs">?</span>
+            <img id="avatarFoto" src="/img/perfil.jpg" alt="" class="w-6 h-6 rounded-full object-cover absolute inset-0" hidden>
+          </span>
+          <span id="nombrePerfil" class="hidden sm:inline max-w-[8rem] truncate">...</span>
+          <span class="text-xs text-stone-400">▾</span>
+        </button>
+        <div id="menuPerfil" class="absolute right-0 mt-2 w-56 bg-white border border-stone-100 text-stone-700 rounded-2xl shadow-soft-lg py-1 text-sm z-10" hidden>
+          <a href="/actividad-en-vivo" class="flex items-center gap-2.5 px-4 py-2 hover:bg-stone-50">
+            <svg class="w-4 h-4 shrink-0 text-stone-400" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M200-160v-240h120v240H200Zm240 0v-440h120v440H440Zm240 0v-640h120v640H680Z"/></svg>
+            Actividad en vivo
+          </a>
+          <a href="/monitoreo" class="flex items-center gap-2.5 px-4 py-2 hover:bg-stone-50">
+            <svg class="w-4 h-4 shrink-0 text-stone-400" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M120-120v-80l80-80v160h-80Zm160 0v-240l80-80v320h-80Zm160 0v-320l80 81v239h-80Zm160 0v-239l80-80v319h-80Zm160 0v-400l80-80v480h-80ZM120-327v-113l280-280 160 160 280-280v113L560-447 400-607 120-327Z"/></svg>
+            Monitoreo de modelos
+          </a>
+          <button id="btnCambiarFoto" class="w-full flex items-center gap-2.5 text-left px-4 py-2 hover:bg-stone-50">
+            <svg class="w-4 h-4 shrink-0 text-stone-400" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z"/></svg>
+            Cambiar foto de perfil
+          </button>
+          <a href="/usuarios" id="enlaceUsuarios" class="flex items-center gap-2.5 px-4 py-2 hover:bg-stone-50" hidden>
+            <svg class="w-4 h-4 shrink-0 text-stone-400" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M0-240v-63q0-43 44-70t116-27q13 0 25 .5t23 2.5q-14 21-21 44t-7 48v65H0Zm240 0v-65q0-32 17.5-58.5T307-410q32-20 76.5-30t96.5-10q53 0 97.5 10t76.5 30q32 20 49 46.5t17 58.5v65H240Zm540 0v-65q0-26-6.5-49T754-397q11-2 22.5-2.5t23.5-.5q72 0 116 26.5t44 70.5v63H780Zm-455-80h311q-10-20-55.5-35T480-370q-55 0-100.5 15T325-320ZM160-440q-33 0-56.5-23.5T80-520q0-34 23.5-57t56.5-23q34 0 57 23t23 57q0 33-23 56.5T160-440Zm640 0q-33 0-56.5-23.5T720-520q0-34 23.5-57t56.5-23q34 0 57 23t23 57q0 33-23 56.5T800-440Zm-320-40q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T600-600q0 50-34.5 85T480-480Zm0-80q17 0 28.5-11.5T520-600q0-17-11.5-28.5T480-640q-17 0-28.5 11.5T440-600q0 17 11.5 28.5T480-560Z"/></svg>
+            Usuarios
+          </a>
+          <button id="btnCerrarSesion" class="w-full flex items-center gap-2.5 text-left px-4 py-2 hover:bg-stone-50 rounded-2xl">
+            <svg class="w-4 h-4 shrink-0 text-stone-400" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M200-120q-33 0-56.5-23.5T120-200v-160h80v160h560v-560H200v160h-80v-160q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm220-160-56-58 102-102H120v-80h346L364-622l56-58 200 200-200 200Z"/></svg>
+            Cerrar sesion
+          </button>
+        </div>
+        <input type="file" id="inputFotoPerfil" accept="image/*" hidden>
+      </div>
+      <button id="btnTema" type="button" title="Cambiar tema" aria-label="Cambiar tema"
+        class="btn-tactile shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-stone-50 hover:bg-stone-100 border border-stone-200 dark:border-stone-700 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition"><svg viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" class="w-[18px] h-[18px]"><path d="M380-160q133 0 226.5-93.5T700-480q0-133-93.5-226.5T380-800h-21q-10 0-19 2 57 66 88.5 147.5T460-480q0 89-31.5 170.5T340-162q9 2 19 2h21Zm0 80q-53 0-103.5-13.5T180-134q93-54 146.5-146T380-480q0-108-53.5-200T180-826q46-27 96.5-40.5T380-880q83 0 156 31.5T663-763q54 54 85.5 127T780-480q0 83-31.5 156T663-197q-54 54-127 85.5T380-80Zm80-400Z"/></svg></button>
     </div>
   </div>
 </header>
-<p class="max-w-xl mx-auto px-6 pt-3 pb-1 text-sm text-stone-400">Captura y consulta tus reportes de campo por texto o voz.</p>
+<p class="max-w-5xl mx-auto px-6 pt-3 pb-1 text-sm text-stone-400">Captura y consulta tus reportes de campo por texto o voz.</p>
 
-<main class="max-w-xl mx-auto px-4 pt-3 space-y-4">
+<div id="sidebarBackdrop" class="md:hidden fixed inset-0 bg-black/30 z-30 opacity-0 pointer-events-none" aria-hidden="true"></div>
 
-  <section class="bg-white rounded-3xl border border-stone-100 shadow-sm p-5">
-    <label for="nombre" class="block text-xs font-semibold text-stone-500 uppercase tracking-wide mb-2">Tu nombre</label>
-    <input type="text" id="nombre" placeholder="Ej: Carlos Verde"
-      class="w-full border border-stone-200 rounded-full px-5 py-3 text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white">
-  </section>
+<div class="px-4 pt-3 flex items-start gap-2">
 
-  <section id="captura" class="bg-white rounded-3xl border border-stone-100 shadow-sm p-5">
-    <h2 class="font-semibold text-stone-700 mb-3">1. Elige la tabla</h2>
-    <div class="relative mb-5">
-      <button id="btnTablaDesplegable" type="button"
-        class="w-full flex items-center justify-between gap-2 bg-stone-50 border border-stone-200 rounded-full px-5 py-3 text-sm font-medium text-stone-700 hover:bg-stone-100 transition">
-        <span id="tablaSeleccionadaTexto">Rendimiento Diario Jornal</span>
-        <span class="text-stone-400 text-xs">▾</span>
-      </button>
-      <div id="listaTablas" class="absolute z-10 mt-2 w-full bg-white border border-stone-100 rounded-2xl shadow-lg overflow-hidden divide-y divide-stone-100" hidden>
-        <button data-tabla="reporte_campo" class="opcionTabla w-full text-left px-4 py-3 text-sm hover:bg-stone-50">Rendimiento Diario Jornal</button>
-        <button data-tabla="actividades_diarias" class="opcionTabla w-full text-left px-4 py-3 text-sm hover:bg-stone-50">Actividades Diarias</button>
-        <button data-tabla="maquinaria" class="opcionTabla w-full text-left px-4 py-3 text-sm hover:bg-stone-50">Maquinaria</button>
-        <button data-tabla="insumos" class="opcionTabla w-full text-left px-4 py-3 text-sm hover:bg-stone-50">Insumos</button>
-        <button data-tabla="catalogos" class="opcionTabla w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center justify-between">
-          <span>Catálogos</span><span class="text-stone-400 text-xs">solo lectura</span>
+  <aside id="sidebar" class="w-[30rem] max-w-[85vw] md:max-w-none shrink-0 h-[calc(100vh-2rem)] md:h-[calc(100vh-6rem)] md:sticky md:top-4">
+    <div class="card h-full flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 bg-stone-50 dark:bg-stone-950 px-3">
+        <div class="flex overflow-x-auto">
+          <button id="tabHistorialBtn" type="button" class="sidebar-tab activa shrink-0 whitespace-nowrap flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-3 py-3.5">
+            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+            Historial
+          </button>
+          <button id="tabAccionesBtn" type="button" class="sidebar-tab shrink-0 whitespace-nowrap flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-3 py-3.5">
+            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Acciones
+          </button>
+          <button id="tabNoticiasBtn" type="button" class="sidebar-tab shrink-0 whitespace-nowrap flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-3 py-3.5">
+            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Noticias
+          </button>
+          <button id="tabActividadBtn" type="button" class="sidebar-tab shrink-0 whitespace-nowrap flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-3 py-3.5">
+            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Actividad
+          </button>
+        </div>
+        <button id="btnCerrarSidebar" type="button" class="md:hidden shrink-0 text-stone-400 hover:text-stone-700 px-2" aria-label="Cerrar">✕</button>
+      </div>
+
+      <div id="panelHistorial" class="flex-1 overflow-y-auto p-5 space-y-4">
+        <h2 class="panel-heading">Registros recientes</h2>
+        <div class="grid grid-cols-2 gap-2.5">
+          <button class="histBtn chip" data-tabla="reporte_campo">Reporte de Campo</button>
+          <button class="histBtn chip" data-tabla="actividades_diarias">Actividades Diarias</button>
+          <button class="histBtn chip" data-tabla="maquinaria">Maquinaria</button>
+          <button class="histBtn chip" data-tabla="insumos">Insumos</button>
+        </div>
+        <button id="btnActualizarHistorial" type="button" disabled
+          class="btn-tactile w-full flex items-center justify-center gap-1.5 bg-stone-50 dark:bg-stone-800 hover:bg-stone-900 dark:hover:bg-stone-100 hover:text-white dark:hover:text-stone-900 disabled:opacity-40 disabled:pointer-events-none border border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 text-xs font-semibold rounded-full py-2.5 transition-colors">
+          <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Actualizar
         </button>
-        <button data-tabla="resumen_semanal" class="opcionTabla w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center justify-between">
-          <span>Resumen Semanal</span><span class="text-stone-400 text-xs">solo lectura</span>
-        </button>
-        <button data-tabla="resumen_dia" class="opcionTabla w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center justify-between">
-          <span>Resumen del Día</span><span class="text-stone-400 text-xs">solo lectura</span>
-        </button>
+        <div id="histResultado" class="space-y-2">
+          <p class="text-xs text-stone-400">Elige una tabla para ver los ultimos registros.</p>
+        </div>
+      </div>
+
+      <div id="panelAcciones" class="flex-1 overflow-y-auto p-5 space-y-6" hidden>
+        <section id="accesosRapidos">
+          <h2 class="panel-heading">Accesos rapidos</h2>
+          <button id="btnCopiarEnlace" type="button"
+            class="btn-tactile w-full flex items-center justify-center gap-1.5 bg-stone-50 dark:bg-stone-800 hover:bg-stone-900 dark:hover:bg-stone-100 hover:text-white dark:hover:text-stone-900 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 text-sm font-semibold rounded-full py-3 transition-colors">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Copiar enlace del bot
+          </button>
+        </section>
+
+        <section id="captura">
+          <label for="nombre" class="block text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wide mb-2">Tu nombre</label>
+          <input type="text" id="nombre" placeholder="Ej: Carlos Verde"
+            class="w-full border border-stone-200 rounded-full px-4 py-3 text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white">
+
+          <div class="border-t border-stone-100 dark:border-stone-800 mt-5 mb-5"></div>
+
+          <h2 class="panel-heading">1. Elige la tabla</h2>
+          <div class="relative mb-5">
+            <button id="btnTablaDesplegable" type="button"
+              class="w-full flex items-center justify-between gap-2 bg-stone-50 border border-stone-200 rounded-full px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-100 transition">
+              <span id="tablaSeleccionadaTexto">Rendimiento Diario Jornal</span>
+              <span class="text-stone-400 text-xs">▾</span>
+            </button>
+            <div id="listaTablas" class="absolute z-10 mt-2 w-full bg-white border border-stone-100 rounded-2xl shadow-soft-lg overflow-hidden divide-y divide-stone-100" hidden>
+              <button data-tabla="reporte_campo" class="opcionTabla w-full text-left px-4 py-3 text-sm hover:bg-stone-50">Rendimiento Diario Jornal</button>
+              <button data-tabla="actividades_diarias" class="opcionTabla w-full text-left px-4 py-3 text-sm hover:bg-stone-50">Actividades Diarias</button>
+              <button data-tabla="maquinaria" class="opcionTabla w-full text-left px-4 py-3 text-sm hover:bg-stone-50">Maquinaria</button>
+              <button data-tabla="insumos" class="opcionTabla w-full text-left px-4 py-3 text-sm hover:bg-stone-50">Insumos</button>
+              <button data-tabla="catalogos" class="opcionTabla w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center justify-between">
+                <span>Catálogos</span><span class="text-stone-400 text-xs">solo lectura</span>
+              </button>
+              <button data-tabla="resumen_semanal" class="opcionTabla w-full text-left px-4 py-3 text-sm hover:bg-stone-50">Resumen Semanal</button>
+              <button data-tabla="resumen_dia" class="opcionTabla w-full text-left px-4 py-3 text-sm hover:bg-stone-50 flex items-center justify-between">
+                <span>Resumen del Día</span><span class="text-stone-400 text-xs">solo lectura</span>
+              </button>
+            </div>
+          </div>
+
+          <h2 class="panel-heading">2. Que quieres hacer</h2>
+          <div id="pillsModo" class="grid grid-cols-2 gap-2.5">
+            <button data-modo="agregar" class="modo-pill pill px-3 py-2.5 rounded-full text-sm font-semibold flex items-center justify-center gap-1.5">
+              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              Agregar Datos
+            </button>
+            <button data-modo="leer" class="modo-pill pill px-3 py-2.5 rounded-full text-sm font-semibold flex items-center justify-center gap-1.5">
+              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              Leer / Preguntar
+            </button>
+          </div>
+          <p id="notaSoloLectura" class="text-xs text-stone-400 mt-2" hidden>Esta pestaña es de solo lectura -- solo se puede preguntar/consultar, no se le agregan reportes por chat.</p>
+
+          <div class="border-t border-stone-100 dark:border-stone-800 mt-5 pt-5">
+            <button id="btnCapturaRapidaToggle" type="button" class="w-full flex items-center justify-between gap-2">
+              <h2 class="panel-heading mb-0 flex items-center gap-1.5">⚡ Captura rápida</h2>
+              <span id="iconoCapturaRapida" class="text-stone-400 text-xs">▾</span>
+            </button>
+            <p class="text-xs text-stone-400 mt-1">Llena los campos con las listas del catálogo y guarda directo, sin escribir ni grabar un mensaje.</p>
+            <div id="panelCapturaRapida" class="mt-3 space-y-3" hidden>
+              <div id="camposRapidos" class="space-y-3"></div>
+              <div class="grid grid-cols-2 gap-2">
+                <button id="btnGuardarRapido" type="button"
+                  class="btn-tactile bg-stone-900 hover:bg-black text-white font-semibold rounded-full py-3 text-sm transition">Guardar</button>
+                <button id="btnEnviarRapido" type="button" hidden
+                  class="btn-tactile bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-semibold rounded-full py-3 text-sm transition">Enviar por correo</button>
+              </div>
+              <div id="estadoCapturaRapida" class="text-xs rounded-2xl px-3 py-2" hidden></div>
+            </div>
+            <p id="notaCapturaRapidaNoDisponible" class="text-xs text-stone-400 mt-2" hidden>La captura rápida con catálogo solo está disponible para Rendimiento Diario Jornal, Maquinaria, Insumos y Resumen Semanal.</p>
+          </div>
+        </section>
+
+        <section id="preview" class="border-t border-stone-100 dark:border-stone-800 pt-5" hidden>
+          <h2 class="panel-heading">Revisa antes de guardar</h2>
+          <p class="text-xs text-stone-400 mb-4">Tabla: <span id="previewTablaTexto" class="font-semibold text-stone-600"></span></p>
+          <div id="campos" class="space-y-3"></div>
+          <div class="grid grid-cols-2 gap-2 mt-4">
+            <button id="btnGuardar" class="btn-tactile bg-stone-900 hover:bg-black text-white font-semibold rounded-full py-3 text-sm transition">Confirmar y guardar</button>
+            <button id="btnEnviarPreview" type="button" hidden
+              class="btn-tactile bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-semibold rounded-full py-3 text-sm transition">Enviar por correo</button>
+            <button id="btnCancelar" class="col-span-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold rounded-full py-3 text-sm transition">Cancelar</button>
+          </div>
+        </section>
+
+        <section class="border-t border-stone-100 dark:border-stone-800 pt-5">
+          <h2 class="panel-heading flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+            Enviar correo al destinatario
+          </h2>
+          <div class="grid grid-cols-1 gap-2">
+            <button id="btnEnviarResumenDiario" class="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-sm font-semibold rounded-full py-2.5 transition flex items-center justify-center gap-1.5">
+              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Enviar resumen diario ahora
+            </button>
+            <button id="btnEnviarResumenSemanal" class="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-sm font-semibold rounded-full py-2.5 transition flex items-center justify-center gap-1.5">
+              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Enviar resumen semanal ahora
+            </button>
+          </div>
+
+          <p class="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wide mt-4 mb-2">O manda el documento completo, etiquetado a una pestaña</p>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button class="tabCorreoBtn chip" data-tab="catalogos">Catálogos</button>
+            <button class="tabCorreoBtn chip" data-tab="reporte_campo">Rendimiento Diario Jornal</button>
+            <button class="tabCorreoBtn chip" data-tab="maquinaria">Maquinaria</button>
+            <button class="tabCorreoBtn chip" data-tab="insumos">Insumos</button>
+            <button class="tabCorreoBtn chip col-span-2" data-tab="resumen_semanal">Resumen Semanal</button>
+          </div>
+
+          <div id="correoResultado" class="mt-3 text-sm text-stone-500"></div>
+        </section>
+      </div>
+
+      <div id="panelNoticias" class="flex-1 overflow-y-auto p-5 space-y-4" hidden>
+        <h2 class="panel-heading">Avisos</h2>
+        <div class="border border-stone-100 dark:border-stone-800 rounded-2xl px-3 py-3 bg-stone-50 dark:bg-stone-800">
+          <p class="text-xs text-stone-400 dark:text-stone-500 mb-1">17 sep 2026</p>
+          <p class="text-sm text-stone-700 dark:text-stone-200 font-medium">Bienvenido a Noticias</p>
+          <p class="text-xs text-stone-500 dark:text-stone-400 mt-1">
+            Aqui puedes poner avisos para el equipo. Este bloque es texto fijo -- se edita
+            directo en <code class="text-stone-600 dark:text-stone-300">src/public/index.html</code>
+            (busca "panelNoticias"), no jala de internet.
+          </p>
+        </div>
+        <div class="border border-stone-100 dark:border-stone-800 rounded-2xl px-3 py-3 bg-stone-50 dark:bg-stone-800">
+          <p class="text-xs text-stone-400 dark:text-stone-500 mb-1">Ejemplo</p>
+          <p class="text-sm text-stone-700 dark:text-stone-200 font-medium">Recuerda capturar el reporte antes de las 6pm</p>
+          <p class="text-xs text-stone-500 dark:text-stone-400 mt-1">Borra este aviso de ejemplo y agrega los tuyos copiando este mismo bloque.</p>
+        </div>
+      </div>
+
+      <div id="panelActividad" class="flex-1 overflow-y-auto p-5 space-y-4" hidden>
+        <h2 class="panel-heading">Estado de conexion</h2>
+        <div class="flex items-center gap-2 px-1">
+          <span id="puntoEstadoSidebar" class="w-2 h-2 rounded-full bg-stone-300 shrink-0"></span>
+          <span id="textoEstadoSidebar" class="text-xs text-stone-500">Conectando...</span>
+        </div>
+        <div id="listaActividad" class="space-y-2">
+          <p class="text-xs text-stone-400">Sin actividad reciente.</p>
+        </div>
       </div>
     </div>
+  </aside>
 
-    <h2 class="font-semibold text-stone-700 mb-3">2. Que quieres hacer</h2>
-    <div id="pillsModo" class="grid grid-cols-2 gap-2 mb-5">
-      <button data-modo="agregar" class="modo-pill pill px-3 py-2.5 rounded-full text-sm font-semibold">➕ Agregar Datos</button>
-      <button data-modo="leer" class="modo-pill pill px-3 py-2.5 rounded-full text-sm font-semibold">🔍 Leer / Preguntar</button>
+  <main class="flex-1 min-w-0">
+
+  <div id="composerFlotante" class="md:sticky md:top-4 z-0 mt-4 pb-4">
+    <div class="card-elevated card-hover p-3">
+      <div class="flex items-center justify-between gap-2 px-2 mb-2 flex-wrap">
+        <h2 id="tituloMensaje" class="text-xs font-semibold text-stone-400 uppercase tracking-wide">3. Escribe o graba tu mensaje</h2>
+        <!-- Selector del modelo que procesa ESTE mensaje. La eleccion se guarda en el
+             navegador (localStorage) y viaja en cada envio; el servidor la valida. -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          <label for="selectorModelo" class="text-[10px] text-stone-400 uppercase tracking-wide">Modelo</label>
+          <select id="selectorModelo" title="Que IA procesa este mensaje"
+            class="text-xs bg-stone-50 border border-stone-200 rounded-full pl-2.5 pr-6 py-1 text-stone-600 focus:outline-none focus:ring-2 focus:ring-green-500 transition max-w-[13rem] truncate">
+            <option value="">Predeterminado</option>
+          </select>
+        </div>
+      </div>
+      <div class="border border-stone-200 rounded-3xl bg-stone-50 focus-within:ring-2 focus-within:ring-green-500 focus-within:bg-white transition flex items-end gap-1 p-2">
+        <textarea id="texto" rows="1"
+          class="flex-1 resize-none bg-transparent px-3 py-2.5 text-sm focus:outline-none max-h-40 overflow-y-auto"
+          placeholder="Ej: Hoy en Pedregoza cortamos 40 arboles de mango con 6 jornaleros, meta eran 50..."></textarea>
+        <button id="btnAudio" type="button" title="Grabar audio"
+          class="btn-tactile w-10 h-10 shrink-0 rounded-full flex items-center justify-center bg-white border border-stone-300 hover:bg-stone-100 text-stone-600 transition">
+          <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+        <button id="btnTexto" type="button" title="Enviar texto"
+          class="btn-tactile w-10 h-10 shrink-0 rounded-full flex items-center justify-center bg-stone-900 hover:bg-black text-white transition">
+          <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        </button>
+      </div>
+
+      <div id="estado" class="mt-3 rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap" hidden></div>
     </div>
-    <p id="notaSoloLectura" class="text-xs text-stone-400 -mt-3 mb-5" hidden>Esta pestaña es de solo lectura -- solo se puede preguntar/consultar, no se le agregan reportes por chat.</p>
+  </div>
 
-    <h2 id="tituloMensaje" class="font-semibold text-stone-700 mb-2">3. Escribe o graba tu mensaje</h2>
-    <textarea id="texto" rows="3"
-      class="w-full border border-stone-200 rounded-2xl px-4 py-3 text-sm bg-stone-50 resize-y focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white"
-      placeholder="Ej: Hoy en Pedregoza cortamos 40 arboles de mango con 6 jornaleros, meta eran 50..."></textarea>
-
-    <div class="grid grid-cols-2 gap-2 mt-3">
-      <button id="btnTexto" class="bg-stone-900 hover:bg-black text-white font-semibold rounded-full py-3 text-sm transition">Enviar texto</button>
-      <button id="btnAudio" class="bg-white border border-stone-300 hover:bg-stone-50 text-stone-700 font-semibold rounded-full py-3 text-sm transition">🎙️ Grabar audio</button>
+  <!-- "Actividad en vivo" antes vivia en una columna propia a la derecha, que le robaba
+       ancho al chat y a la tabla de resultados. Ahora va aqui abajo, en horizontal, para
+       que el chat y las celdas usen todo el ancho disponible. -->
+  <div class="pb-4">
+    <div class="card card-hover p-4 flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+      <img src="/img/pedregoza-logo.png" alt="La Pedregoza" class="w-14 h-auto shrink-0">
+      <div class="flex-1 min-w-0">
+        <h3 class="font-semibold text-stone-800 text-sm">Actividad en vivo</h3>
+        <p class="text-xs text-stone-400">Mira en tiempo real lo que se va capturando en campo.</p>
+      </div>
+      <a href="/actividad-en-vivo"
+        class="btn-tactile shrink-0 w-full sm:w-auto sm:px-6 bg-stone-900 hover:bg-black text-white font-semibold rounded-full py-2 text-xs transition text-center">
+        Ver actividad
+      </a>
     </div>
+  </div>
 
-    <div id="estado" class="mt-4 rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap" hidden></div>
-  </section>
+  </main>
 
-  <section id="preview" class="bg-white rounded-3xl border border-stone-100 shadow-sm p-5" hidden>
-    <h2 class="font-semibold text-stone-700 mb-1">Revisa antes de guardar</h2>
-    <p class="text-xs text-stone-400 mb-4">Tabla: <span id="previewTablaTexto" class="font-semibold text-stone-600"></span></p>
-    <div id="campos" class="space-y-3"></div>
-    <div class="grid grid-cols-2 gap-2 mt-4">
-      <button id="btnGuardar" class="bg-stone-900 hover:bg-black text-white font-semibold rounded-full py-3 text-sm transition">Confirmar y guardar</button>
-      <button id="btnCancelar" class="bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold rounded-full py-3 text-sm transition">Cancelar</button>
-    </div>
-  </section>
+</div>
 
-  <section class="bg-white rounded-3xl border border-stone-100 shadow-sm p-5">
-    <h2 class="font-semibold text-stone-700 mb-3">Ver ultimos registros</h2>
-    <div class="grid grid-cols-2 gap-2">
-      <button class="histBtn bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-600 text-xs font-semibold rounded-full py-2.5 transition" data-tabla="reporte_campo">Reporte de Campo</button>
-      <button class="histBtn bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-600 text-xs font-semibold rounded-full py-2.5 transition" data-tabla="actividades_diarias">Actividades Diarias</button>
-      <button class="histBtn bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-600 text-xs font-semibold rounded-full py-2.5 transition" data-tabla="maquinaria">Maquinaria</button>
-      <button class="histBtn bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-600 text-xs font-semibold rounded-full py-2.5 transition" data-tabla="insumos">Insumos</button>
-    </div>
-    <div id="histResultado" class="mt-4 space-y-2"></div>
-  </section>
+<footer class="max-w-5xl mx-auto px-6 py-8 flex items-center justify-center gap-2 text-xs text-stone-400">
+  <img src="/img/mark.png" alt="" class="w-4 h-4 opacity-60">
+  <span>La Pedregoza &middot; hecho por BuildWise Labs</span>
+</footer>
 
-  <section class="bg-white rounded-3xl border border-stone-100 shadow-sm p-5">
-    <h2 class="font-semibold text-stone-700 mb-3">📧 Enviar correo al destinatario</h2>
-    <div class="grid grid-cols-1 gap-2">
-      <button id="btnEnviarResumenDiario" class="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-sm font-semibold rounded-full py-2.5 transition">Enviar resumen diario ahora</button>
-      <button id="btnEnviarResumenSemanal" class="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-sm font-semibold rounded-full py-2.5 transition">Enviar resumen semanal ahora</button>
-    </div>
-
-    <p class="text-xs font-semibold text-stone-400 uppercase tracking-wide mt-4 mb-2">O manda el documento completo, etiquetado a una pestaña</p>
-    <div class="grid grid-cols-2 gap-2">
-      <button class="tabCorreoBtn bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-600 text-xs font-semibold rounded-full py-2.5 transition" data-tab="catalogos">Catálogos</button>
-      <button class="tabCorreoBtn bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-600 text-xs font-semibold rounded-full py-2.5 transition" data-tab="reporte_campo">Rendimiento Diario Jornal</button>
-      <button class="tabCorreoBtn bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-600 text-xs font-semibold rounded-full py-2.5 transition" data-tab="maquinaria">Maquinaria</button>
-      <button class="tabCorreoBtn bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-600 text-xs font-semibold rounded-full py-2.5 transition" data-tab="insumos">Insumos</button>
-      <button class="tabCorreoBtn bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-600 text-xs font-semibold rounded-full py-2.5 transition col-span-2" data-tab="resumen_semanal">Resumen Semanal</button>
-    </div>
-
-    <div id="correoResultado" class="mt-3 text-sm text-stone-500"></div>
-  </section>
-
-</main>
-
-<script>
-const baseUrl = window.location.origin;
-const mensajeUrl = baseUrl + '/bot-web-mensaje';
-const guardarUrl = baseUrl + '/bot-web-guardar';
-const historialUrl = baseUrl + '/bot-web-historial';
-
-// --- Perfil / sesion ---
-(async () => {
-  try {
-    const res = await fetch('/perfil');
-    if (res.status === 401) { window.location.href = '/login'; return; }
-    const data = await res.json();
-    if (data.ok) {
-      document.getElementById('nombrePerfil').textContent = data.usuario;
-      document.getElementById('avatarPerfil').textContent = (data.usuario || '?').charAt(0).toUpperCase();
-    }
-  } catch (e) { /* si falla, se queda el "..." -- no es critico para usar la pagina */ }
-})();
-
-document.getElementById('btnPerfil').addEventListener('click', () => {
-  document.getElementById('menuPerfil').hidden = !document.getElementById('menuPerfil').hidden;
-});
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('#btnPerfil') && !e.target.closest('#menuPerfil')) {
-    document.getElementById('menuPerfil').hidden = true;
-  }
-});
-document.getElementById('btnCerrarSesion').addEventListener('click', async () => {
-  try { await fetch('/logout', { method: 'POST' }); } catch (e) {}
-  window.location.href = '/login';
-});
-
-const NOMBRES_TABLA = {
-  reporte_campo: 'Rendimiento Diario Jornal',
-  actividades_diarias: 'Actividades Diarias',
-  maquinaria: 'Maquinaria',
-  insumos: 'Insumos',
-  catalogos: 'Catálogos',
-  resumen_semanal: 'Resumen Semanal',
-  resumen_dia: 'Resumen del Día',
-};
-// Estas son de solo lectura -- no tienen "campos" que llenar para agregar un
-// registro nuevo, solo se pueden preguntar/consultar (ver actualizarDisponibilidadModo).
-const TABLAS_SOLO_LECTURA = ['catalogos', 'resumen_semanal', 'resumen_dia'];
-
-const CAMPOS_REPORTE_CAMPO = [
-  ['Fecha','Fecha'], ['Actividad','Actividad'], ['Ubicacion','Ubicacion'], ['Huerta','Huerta'],
-  ['Responsable','Responsable'], ['NumeroDePersonas','N de personas'], ['CantidadRealizada','Cantidad realizada'],
-  ['UnidadDeMedida','Unidad de medida'], ['MetaDeRendimiento','Meta de rendimiento'], ['Incidencia','Incidencia (Si/No)'],
-  ['MotivoDeIncidencia','Motivo de incidencia'], ['Observaciones','Observaciones']
-];
-const CAMPOS_ACTIVIDADES = [
-  ['Fecha','Fecha'], ['Campo','Campo'], ['Lote','Lote'], ['Actividad','Actividad'], ['Responsable','Responsable'],
-  ['NumeroJornaleros','N de jornaleros'], ['ProcedenciaCuadrilla','Procedencia / cuadrilla'],
-  ['RecursosMaquinaria','Recursos / maquinaria'], ['CostoPorJornal','Costo por jornal'], ['NominaTotal','Nomina total'],
-  ['Observaciones','Observaciones']
-];
-const CAMPOS_MAQUINARIA = [
-  ['Fecha','Fecha'], ['Equipo','Equipo'], ['Implemento','Implemento'], ['TipoCombustible','Tipo de combustible'],
-  ['Actividad','Actividad'], ['Ubicacion','Ubicacion'], ['Huerta','Huerta'], ['Responsable','Responsable (operador)'],
-  ['Litros','Litros'], ['Horas','Horas'], ['CostoTotal','Costo total'], ['AvanceRendimiento','Avance (ha)'],
-  ['Observaciones','Observaciones']
-];
-const CAMPOS_INSUMOS = [
-  ['Fecha','Fecha'], ['RecursoInsumo','Recurso / insumo'], ['Cantidad','Cantidad'], ['UnidadDeMedida','Unidad de medida'],
-  ['MotivoDeUso','Motivo de uso'], ['Actividad','Actividad'], ['Huerta','Huerta'], ['CostoPorUnidad','Costo por unidad'],
-  ['CostoTotal','Costo total'], ['Responsable','Responsable']
-];
-
-const CAMPOS_POR_TABLA = {
-  reporte_campo: CAMPOS_REPORTE_CAMPO,
-  actividades_diarias: CAMPOS_ACTIVIDADES,
-  maquinaria: CAMPOS_MAQUINARIA,
-  insumos: CAMPOS_INSUMOS,
-};
-
-const estado = document.getElementById('estado');
-const capturaCard = document.getElementById('captura');
-const previewCard = document.getElementById('preview');
-const camposDiv = document.getElementById('campos');
-const previewTablaTexto = document.getElementById('previewTablaTexto');
-const nombreInput = document.getElementById('nombre');
-const tituloMensaje = document.getElementById('tituloMensaje');
-const textoInput = document.getElementById('texto');
-const btnTexto = document.getElementById('btnTexto');
-
-try {
-  const guardado = localStorage.getItem('agro_bot_nombre');
-  if (guardado) nombreInput.value = guardado;
-} catch (e) {}
-nombreInput.addEventListener('change', () => {
-  try { localStorage.setItem('agro_bot_nombre', nombreInput.value); } catch (e) {}
-});
-
-function mostrar(clase, texto) {
-  estado.hidden = false;
-  estado.textContent = texto;
-  const base = 'mt-4 rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap';
-  const estilos = {
-    ok: base + ' bg-green-50 text-green-800 border border-green-200',
-    err: base + ' bg-red-50 text-red-700 border border-red-200',
-    wait: base + ' bg-amber-50 text-amber-800 border border-amber-200',
-  };
-  estado.className = estilos[clase] || base;
-}
-function ocultarEstado() { estado.hidden = true; }
-
-let camposActuales = {};
-let textoTranscritoActual = '';
-let tablaSeleccionada = 'actividades_diarias';
-let modoSeleccionado = 'agregar';
-
-const btnTablaDesplegable = document.getElementById('btnTablaDesplegable');
-const listaTablas = document.getElementById('listaTablas');
-const tablaSeleccionadaTexto = document.getElementById('tablaSeleccionadaTexto');
-const notaSoloLectura = document.getElementById('notaSoloLectura');
-
-function actualizarTablaSeleccionada() {
-  tablaSeleccionadaTexto.textContent = NOMBRES_TABLA[tablaSeleccionada] || tablaSeleccionada;
-  document.querySelectorAll('.opcionTabla').forEach((btn) => {
-    btn.classList.toggle('bg-stone-50', btn.dataset.tabla === tablaSeleccionada);
-  });
-}
-
-// Catalogos, Resumen Semanal y Resumen del Dia son de solo lectura -- si se eligen, se
-// apaga el modo "Agregar Datos" y se fuerza "Leer / Preguntar" (no tiene sentido
-// "agregar" un dato a una lista de catalogos o a un resumen que se calcula solo).
-function actualizarDisponibilidadModo() {
-  const soloLectura = TABLAS_SOLO_LECTURA.includes(tablaSeleccionada);
-  const btnAgregar = document.querySelector('#pillsModo button[data-modo="agregar"]');
-  btnAgregar.disabled = soloLectura;
-  btnAgregar.classList.toggle('opacity-30', soloLectura);
-  btnAgregar.classList.toggle('cursor-not-allowed', soloLectura);
-  notaSoloLectura.hidden = !soloLectura;
-  if (soloLectura && modoSeleccionado !== 'leer') {
-    modoSeleccionado = 'leer';
-  }
-  actualizarPillsModo();
-}
-
-function actualizarPillsModo() {
-  document.querySelectorAll('#pillsModo .pill').forEach((btn) => {
-    btn.classList.toggle('activa', btn.dataset.modo === modoSeleccionado);
-  });
-  const esLeer = modoSeleccionado === 'leer';
-  tituloMensaje.textContent = esLeer ? '3. Escribe o pregunta en voz' : '3. Escribe o graba tu mensaje';
-  textoInput.placeholder = esLeer
-    ? 'Ej: ¿Que actividades se hicieron el 31 de agosto?'
-    : 'Ej: Hoy en Pedregoza cortamos 40 arboles de mango con 6 jornaleros, meta eran 50...';
-  btnTexto.textContent = esLeer ? 'Preguntar' : 'Enviar texto';
-}
-
-btnTablaDesplegable.addEventListener('click', () => {
-  listaTablas.hidden = !listaTablas.hidden;
-});
-listaTablas.addEventListener('click', (e) => {
-  const btn = e.target.closest('button[data-tabla]');
-  if (!btn) return;
-  tablaSeleccionada = btn.dataset.tabla;
-  actualizarTablaSeleccionada();
-  actualizarDisponibilidadModo();
-  listaTablas.hidden = true;
-});
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('#btnTablaDesplegable') && !e.target.closest('#listaTablas')) {
-    listaTablas.hidden = true;
-  }
-});
-document.getElementById('pillsModo').addEventListener('click', (e) => {
-  const btn = e.target.closest('button[data-modo]');
-  if (!btn || btn.disabled) return;
-  modoSeleccionado = btn.dataset.modo;
-  actualizarPillsModo();
-});
-actualizarTablaSeleccionada();
-actualizarDisponibilidadModo();
-
-function renderCampos(tabla) {
-  const lista = CAMPOS_POR_TABLA[tabla] || CAMPOS_ACTIVIDADES;
-  camposDiv.innerHTML = '';
-  lista.forEach(([clave, etiqueta]) => {
-    const wrap = document.createElement('div');
-    const label = document.createElement('label');
-    label.textContent = etiqueta;
-    label.className = 'block text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1';
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.dataset.clave = clave;
-    input.className = 'w-full border border-stone-200 rounded-full px-4 py-2.5 text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white';
-    input.value = (camposActuales[clave] !== undefined && camposActuales[clave] !== null) ? camposActuales[clave] : '';
-    wrap.appendChild(label);
-    wrap.appendChild(input);
-    camposDiv.appendChild(wrap);
-  });
-}
-
-async function enviarMensaje(payload) {
-  mostrar('wait', 'Procesando con IA, un momento...');
-  try {
-    const res = await fetch(mensajeUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...payload, modo: modoSeleccionado, tabla: tablaSeleccionada })
-    });
-    const data = await res.json();
-    if (!data.ok) { mostrar('err', data.mensaje || 'No se pudo procesar.'); return; }
-
-    // Modo "leer": la respuesta es texto directo, no se abre el formulario de guardar.
-    if (data.modo === 'consulta') {
-      mostrar('ok', data.respuesta || 'Sin respuesta.');
-      return;
-    }
-
-    camposActuales = data.campos || {};
-    textoTranscritoActual = data.texto_transcrito || '';
-    const tablaDetectada = CAMPOS_POR_TABLA[data.tabla] ? data.tabla : tablaSeleccionada;
-    tablaSeleccionada = tablaDetectada;
-    actualizarTablaSeleccionada();
-    previewTablaTexto.textContent = NOMBRES_TABLA[tablaDetectada] || tablaDetectada;
-    renderCampos(tablaDetectada);
-    capturaCard.hidden = true;
-    previewCard.hidden = false;
-    ocultarEstado();
-    if (data.tabla === 'no_identificada') {
-      mostrar('wait', 'No se identifico bien el mensaje, revisa/completa los campos.');
-      previewCard.appendChild(estado);
-    }
-  } catch (e) {
-    mostrar('err', 'No se pudo enviar: ' + e.message);
-  }
-}
-
-btnTexto.addEventListener('click', () => {
-  const texto = textoInput.value.trim();
-  if (!texto) { mostrar('err', 'Escribe algo primero.'); return; }
-  enviarMensaje({ tipo: 'texto', texto });
-  textoInput.value = '';
-});
-
-const CLASE_BTN_AUDIO_NORMAL = 'bg-white border border-stone-300 hover:bg-stone-50 text-stone-700 font-semibold rounded-full py-3 text-sm transition';
-const CLASE_BTN_AUDIO_GRABANDO = 'bg-red-600 hover:bg-red-700 text-white font-semibold rounded-full py-3 text-sm transition';
-
-let mediaRecorder, chunks = [];
-const btnAudio = document.getElementById('btnAudio');
-btnAudio.addEventListener('click', async () => {
-  if (mediaRecorder && mediaRecorder.state === 'recording') {
-    mediaRecorder.stop();
-    return;
-  }
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    chunks = [];
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = e => chunks.push(e.data);
-    mediaRecorder.onstop = () => {
-      stream.getTracks().forEach(t => t.stop());
-      btnAudio.className = CLASE_BTN_AUDIO_NORMAL;
-      btnAudio.textContent = '🎙️ Grabar audio';
-      const blob = new Blob(chunks, { type: mediaRecorder.mimeType || 'audio/webm' });
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result.split(',')[1];
-        enviarMensaje({ tipo: 'audio', audio_base64: base64, mime_type: blob.type || 'audio/webm' });
-      };
-      reader.readAsDataURL(blob);
-    };
-    mediaRecorder.start();
-    btnAudio.className = CLASE_BTN_AUDIO_GRABANDO;
-    btnAudio.textContent = '⏹️ Detener y enviar';
-    mostrar('wait', 'Grabando... presiona de nuevo para enviar.');
-  } catch (e) {
-    mostrar('err', 'No se pudo acceder al microfono: ' + e.message);
-  }
-});
-
-document.getElementById('btnCancelar').addEventListener('click', () => {
-  previewCard.hidden = true;
-  capturaCard.hidden = false;
-  ocultarEstado();
-});
-
-document.getElementById('btnGuardar').addEventListener('click', async () => {
-  const inputs = camposDiv.querySelectorAll('input');
-  const camposEditados = {};
-  inputs.forEach(inp => { camposEditados[inp.dataset.clave] = inp.value; });
-  mostrar('wait', 'Guardando...');
-  previewCard.appendChild(estado);
-  try {
-    const res = await fetch(guardarUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tabla: tablaSeleccionada,
-        campos: camposEditados,
-        reportado_por: nombreInput.value || '',
-        texto_transcrito: textoTranscritoActual
-      })
-    });
-    const data = await res.json();
-    previewCard.hidden = true;
-    capturaCard.hidden = false;
-    capturaCard.appendChild(estado);
-    mostrar(data.ok === false ? 'err' : 'ok', data.mensaje || 'Guardado.');
-  } catch (e) {
-    mostrar('err', 'No se pudo guardar: ' + e.message);
-  }
-});
-
-function renderHistorial(registros) {
-  const cont = document.getElementById('histResultado');
-  if (!registros || registros.length === 0) {
-    cont.innerHTML = '<p class="text-xs text-stone-400">Sin registros.</p>';
-    return;
-  }
-  cont.innerHTML = registros.map(r => {
-    const partes = Object.entries(r).filter(([k,v]) => v !== '' && v !== null && v !== undefined).slice(0, 6);
-    return '<div class="border border-stone-100 rounded-2xl px-3 py-2 text-xs text-stone-600 bg-stone-50">' +
-      partes.map(([k,v]) => '<b class="text-stone-800">' + k + ':</b> ' + v).join(' &nbsp;|&nbsp; ') + '</div>';
-  }).join('');
-}
-
-async function verHistorial(tabla) {
-  const cont = document.getElementById('histResultado');
-  cont.innerHTML = '<p class="text-xs text-stone-400">Cargando...</p>';
-  try {
-    const res = await fetch(historialUrl + '?tabla=' + tabla);
-    const data = await res.json();
-    renderHistorial(data.registros);
-  } catch (e) {
-    cont.innerHTML = '<p class="text-xs text-red-500">Error: ' + e.message + '</p>';
-  }
-}
-
-document.querySelectorAll('.histBtn').forEach((btn) => {
-  btn.addEventListener('click', () => verHistorial(btn.dataset.tabla));
-});
-
-async function enviarResumenAhora(ruta, boton, nombre) {
-  const cont = document.getElementById('correoResultado');
-  const textoOriginal = boton.textContent;
-  boton.disabled = true;
-  boton.textContent = 'Enviando...';
-  cont.innerHTML = '<p>Armando y mandando el ' + nombre + ', un momento...</p>';
-  try {
-    const res = await fetch(baseUrl + ruta, { method: 'POST' });
-    const data = await res.json();
-    cont.innerHTML = data.ok
-      ? '<p class="text-green-700">Listo, se mando el ' + nombre + ' al correo.</p>'
-      : '<p class="text-red-600">No se pudo mandar: ' + (data.error || 'error desconocido') + '</p>';
-  } catch (e) {
-    cont.innerHTML = '<p class="text-red-600">Error: ' + e.message + '</p>';
-  } finally {
-    boton.disabled = false;
-    boton.textContent = textoOriginal;
-  }
-}
-
-document.getElementById('btnEnviarResumenDiario').addEventListener('click', (e) =>
-  enviarResumenAhora('/probar-resumen-diario', e.target, 'resumen diario'));
-document.getElementById('btnEnviarResumenSemanal').addEventListener('click', (e) =>
-  enviarResumenAhora('/probar-resumen-semanal', e.target, 'resumen semanal'));
-
-async function enviarTabPorCorreo(tab, boton, etiqueta) {
-  const cont = document.getElementById('correoResultado');
-  const textoOriginal = boton.textContent;
-  boton.disabled = true;
-  boton.textContent = 'Enviando...';
-  cont.innerHTML = '<p>Mandando el documento (pestaña ' + etiqueta + '), un momento...</p>';
-  try {
-    const res = await fetch(baseUrl + '/enviar-tab-correo', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tab }),
-    });
-    const data = await res.json();
-    cont.innerHTML = data.ok
-      ? '<p class="text-green-700">Listo, se mando el documento (pestaña ' + etiqueta + ') al correo.</p>'
-      : '<p class="text-red-600">No se pudo mandar: ' + (data.error || 'error desconocido') + '</p>';
-  } catch (e) {
-    cont.innerHTML = '<p class="text-red-600">Error: ' + e.message + '</p>';
-  } finally {
-    boton.disabled = false;
-    boton.textContent = textoOriginal;
-  }
-}
-
-document.querySelectorAll('.tabCorreoBtn').forEach((btn) => {
-  btn.addEventListener('click', () => enviarTabPorCorreo(btn.dataset.tab, btn, btn.textContent));
-});
-</script>
+<script src="/socket.io/socket.io.min.js"></script>
+<script defer src="/js/dist/index.8206823b.bundle.js"></script>
 </body>
 </html>

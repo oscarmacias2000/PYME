@@ -4,7 +4,7 @@ import HomeScreen from '../screens/HomeScreen';
 import ServicesScreen from '../screens/ServicesScreen';
 import ServiceDetailScreen from '../screens/ServiceDetailScreen';
 import DocsScreen from '../screens/DocsScreen';
-import AboutScreen from '../screens/AboutScreen';
+import OwnDocScreen from '../screens/OwnDocScreen';
 import ContactScreen from '../screens/ContactScreen';
 import LoginScreen from '../screens/LoginScreen';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -22,7 +22,7 @@ export default function RootNavigator() {
       <Stack.Screen name="Servicios" component={ServicesScreen} />
       <Stack.Screen name="Servicio" component={ServiceDetailScreen} />
       <Stack.Screen name="Docs" component={DocsScreen} />
-      <Stack.Screen name="Nosotros" component={AboutScreen} />
+      <Stack.Screen name="Documento" component={OwnDocScreen} />
       <Stack.Screen name="Contacto" component={ContactScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Perfil" component={ProfileScreen} />

@@ -21,28 +21,43 @@ export default function Button({
       'border border-carbon-electric bg-transparent hover:bg-carbon-electric',
     ghost: 'bg-transparent',
     outlineWhite: 'border border-white bg-transparent hover:bg-white',
+    // Pildoras estilo "Astra" (para fondos espaciales oscuros).
+    pill: 'rounded-full bg-white hover:bg-carbon-gray20',
+    pillDark: 'rounded-full border border-white/15 bg-white/10 hover:bg-white/20',
   };
+
+  const isPill = variant === 'pill' || variant === 'pillDark';
 
   const text = {
     primary: 'text-white',
     tertiary: 'text-carbon-electric',
     ghost: 'text-carbon-blue',
     outlineWhite: 'text-white hover:text-carbon-black',
+    pill: 'text-carbon-black',
+    pillDark: 'text-white',
   };
 
   const iconColor =
-    variant === 'primary' || variant === 'outlineWhite'
+    variant === 'pill'
+      ? '#161616'
+      : variant === 'primary' || variant === 'outlineWhite' || variant === 'pillDark'
       ? '#ffffff'
       : variant === 'tertiary'
-        ? '#2f6bf5'
-        : '#c026d3';
+        ? '#7088b3'
+        : '#9d6b99';
 
   return (
     <Pressable
       onPress={onPress}
-      className={`min-w-[180px] flex-row items-center justify-between px-4 py-3 active:opacity-90 ${container[variant]} ${className}`}
+      className={`flex-row items-center active:opacity-90 ${
+        isPill
+          ? 'justify-center gap-2 px-6 py-3'
+          : 'min-w-[180px] justify-between px-4 py-3'
+      } ${container[variant]} ${className}`}
     >
-      <Text className={`mr-8 font-plex text-[15px] ${text[variant]}`}>
+      <Text
+        className={`${isPill ? 'font-plexsemibold' : 'mr-8 font-plex'} text-[15px] ${text[variant]}`}
+      >
         {label}
       </Text>
       {icon ? (

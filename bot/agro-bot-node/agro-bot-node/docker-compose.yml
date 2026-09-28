@@ -1,0 +1,43 @@
+# PostgreSQL para las cuentas individuales del bot (tabla usuarios + auditoria de
+# registros). Ver prisma/schema.prisma.
+#
+# Esto NO levanta el bot: solo la base. El bot sigue corriendo como siempre (npm start
+# en local, o el despliegue de Hostinger). La base es opcional -- sin DATABASE_URL el
+# bot usa el login unico compartido de siempre.
+#
+# Uso:
+#   docker compose up -d
+#   npx prisma generate && npm run db:migrate
+#   npm run db:seed-admin -- "Tu Nombre" tu_usuario tu_password_segura
+#
+# Y en el .env:
+#   DATABASE_URL="postgresql://agrobot:agrobot@localhost:5432/agrobot?schema=public"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: agrobot_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agrobot
+      POSTGRES_PASSWORD: agrobot
+      POSTGRES_DB: agrobot
+      TZ: America/Mazatlan
+    ports:
+      # Si el 5432 ya lo ocupa otro Postgres en tu maquina, cambia el de la IZQUIERDA
+      # (por ejemplo "5433:5432") y ajusta el puerto en DATABASE_URL.
+      - "5432:5432"
+    volumes:
+      # Los datos viven en un volumen con nombre, no dentro del proyecto: asi no se
+      # pierden al reconstruir ni se cuelan al zip del despliegue.
+      - agrobot_db_data:/var/lib/postgresql/data
+    healthcheck:
+      # Para que "docker compose up -d --wait" no devuelva antes de que acepte conexiones
+      # (si corres las migraciones enseguida, si no fallan por "connection refused").
+      test: ["CMD-SHELL", "pg_isready -U agrobot -d agrobot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  agrobot_db_data:

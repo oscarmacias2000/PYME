@@ -51,8 +51,9 @@ const BLOQUE_MAQUINARIA = `Campos a extraer (usa null si no se menciona):
 - Huerta (valores tipicos: La Adulta, Arroyo 1, Arroyo 2, Arroyo 3, Los Tamarindos, La Loma, La Carretera, Pozo 1, Pozo 2, Loma Baja, El Caballo, El Veterinario, Shumbeño, El Becerro, Beatriz, Shelma, La Brecha, Los Panales, Las Cañadas, Las Cuatas)
 - Responsable (el operador de la maquina; valores tipicos: Victor Manuel Jara Peinado, Rafael Lopez Jara, Paul Jara Guerra, Jose Ramon Jara Peraza, Jesus Ricardo Gonzales Rueda; si mencionan otro nombre usalo tal cual)
 - Litros (numero, litros de combustible cargados)
-- Horas (numero, horas que trabajo el equipo)
-- CostoTotal (numero, pesos MXN)
+- TanqueLleno ("Si" o "No" -- si dejaron el tanque lleno al terminar la carga)
+- HorometroActual (numero, la lectura del horometro/odometro del equipo en este momento -- NO las horas trabajadas, es la lectura acumulada; null si no se menciona)
+- PrecioDiesel (numero, pesos MXN por litro, el precio del diesel ese dia; null si no se menciona)
 - AvanceRendimiento (numero, hectareas u otra unidad de avance logrado)
 - Observaciones (texto libre)`;
 

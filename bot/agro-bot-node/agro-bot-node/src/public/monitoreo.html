@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monitoreo de modelos - La Pedregoza</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png?v=2">
+<link rel="icon" href="/favicon.ico?v=2" sizes="any">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png?v=2">
+<script>
+  try {
+    if (localStorage.getItem('agro_bot_tema') === 'oscuro') {
+      document.documentElement.classList.add('dark');
+    }
+  } catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/main.75e1a6a4.css">
+</head>
+<body class="bg-stone-50 min-h-screen text-stone-800 pb-16">
+
+<header class="bg-white border-b border-stone-100 shadow-sm px-4 sm:px-6 py-4">
+  <div class="max-w-4xl mx-auto flex items-center justify-between gap-2">
+    <a href="/bot-web" class="text-stone-400 hover:text-stone-600 text-sm shrink-0">&larr; Volver</a>
+    <div class="flex items-center gap-2 min-w-0">
+      <img src="/img/pedregoza-logo.png" alt="La Pedregoza" class="h-7 w-auto shrink-0">
+      <span class="font-semibold text-stone-800 tracking-tight whitespace-nowrap">Monitoreo de modelos</span>
+    </div>
+    <button id="btnTema" type="button" title="Cambiar tema" aria-label="Cambiar tema"
+      class="btn-tactile shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-stone-50 hover:bg-stone-100 border border-stone-200 dark:border-stone-700 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition"><svg viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" class="w-[18px] h-[18px]"><path d="M380-160q133 0 226.5-93.5T700-480q0-133-93.5-226.5T380-800h-21q-10 0-19 2 57 66 88.5 147.5T460-480q0 89-31.5 170.5T340-162q9 2 19 2h21Zm0 80q-53 0-103.5-13.5T180-134q93-54 146.5-146T380-480q0-108-53.5-200T180-826q46-27 96.5-40.5T380-880q83 0 156 31.5T663-763q54 54 85.5 127T780-480q0 83-31.5 156T663-197q-54 54-127 85.5T380-80Zm80-400Z"/></svg></button>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-4 pt-5 space-y-4">
+
+  <!-- Estado ahora mismo: requiere una llamada real, por eso es un boton y no automatico -->
+  <section class="card card-hover p-5">
+    <div class="flex items-start justify-between gap-3 flex-wrap">
+      <div class="min-w-0">
+        <h2 class="font-semibold text-stone-800">¿Responde el modelo ahora mismo?</h2>
+        <p class="text-xs text-stone-400 mt-1">Manda una peticion minima real al modelo configurado. Consume un poco de cuota, por eso no es automatico.</p>
+      </div>
+      <button id="btnPing" type="button"
+        class="btn-tactile shrink-0 bg-stone-900 hover:bg-black text-white font-semibold rounded-full px-5 py-2 text-sm transition">
+        Probar ahora
+      </button>
+    </div>
+    <div id="resultadoPing" class="mt-4" hidden></div>
+  </section>
+
+  <!-- Modelos configurados -->
+  <section class="card card-hover p-5">
+    <h2 class="font-semibold text-stone-800 mb-1">Modelos configurados</h2>
+    <p class="text-xs text-stone-400 mb-3">Lo que el servidor tiene cargado en este momento (desde el .env).</p>
+    <div id="configurados" class="space-y-2">
+      <div class="skeleton-line w-2/3"></div>
+      <div class="skeleton-line w-1/2"></div>
+    </div>
+  </section>
+
+  <!-- Contadores -->
+  <section class="card card-hover p-5">
+    <div class="flex items-start justify-between gap-3 flex-wrap mb-1">
+      <h2 class="font-semibold text-stone-800">Llamadas registradas</h2>
+      <span id="uptime" class="text-xs text-stone-400"></span>
+    </div>
+    <p class="text-xs text-stone-400 mb-3">Se cuentan en memoria y se reinician cuando se reinicia el servidor.</p>
+    <div id="contadores"></div>
+  </section>
+
+  <!-- Modelos que acepta la llave -->
+  <section class="card card-hover p-5">
+    <div class="flex items-start justify-between gap-3 flex-wrap">
+      <div class="min-w-0">
+        <h2 class="font-semibold text-stone-800">Modelos disponibles para esta llave</h2>
+        <p class="text-xs text-stone-400 mt-1">Sirve para cachar un nombre de modelo mal escrito o uno que Google ya retiro.</p>
+      </div>
+      <button id="btnModelos" type="button"
+        class="btn-tactile shrink-0 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 font-semibold rounded-full px-4 py-2 text-sm transition">
+        Consultar
+      </button>
+    </div>
+    <div id="listaModelos" class="mt-4" hidden></div>
+  </section>
+
+</main>
+
+<script defer src="/js/dist/monitoreo.a35a9363.bundle.js"></script>
+</body>
+</html>

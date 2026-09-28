@@ -58,7 +58,7 @@ export default function PhoneMockup() {
           style={{ width: 44, height: 44 }}
           resizeMode="contain"
         />
-        <Text style={{ color: '#ffffff', fontSize: 14, fontWeight: '700' }}>Hi, I'm Claude.</Text>
+        <Text style={{ color: '#ffffff', fontSize: 14, fontWeight: '700' }}>Hi, I&apos;m Claude.</Text>
         <Text style={{ color: '#9ca3af', fontSize: 10, textAlign: 'center' }}>How can I help you today?</Text>
       </View>
 

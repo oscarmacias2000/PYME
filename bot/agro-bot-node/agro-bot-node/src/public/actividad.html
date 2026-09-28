@@ -3,57 +3,66 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Actividad en vivo - Agro PYME</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  body { font-family: 'Segoe UI', system-ui, sans-serif; }
-</style>
+<title>Actividad en vivo - La Pedregoza</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png?v=2">
+<link rel="icon" href="/favicon.ico?v=2" sizes="any">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png?v=2">
+<script>
+  try {
+    if (localStorage.getItem('agro_bot_tema') === 'oscuro') {
+      document.documentElement.classList.add('dark');
+    }
+  } catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/main.75e1a6a4.css">
 </head>
 <body class="bg-stone-50 min-h-screen text-stone-800 pb-16">
 
-<header class="bg-white border-b border-stone-100 px-6 py-4">
+<header class="bg-white border-b border-stone-100 shadow-sm px-6 py-4">
   <div class="max-w-xl mx-auto flex items-center justify-between gap-3">
     <a href="/bot-web" class="text-stone-400 hover:text-stone-600 text-sm">← Volver</a>
     <div class="flex items-center gap-2">
       <span class="text-xl">📡</span>
       <span class="font-semibold text-stone-800 tracking-tight">Actividad en vivo</span>
     </div>
+    <button id="btnTema" type="button" title="Cambiar tema" aria-label="Cambiar tema"
+      class="btn-tactile shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-stone-50 hover:bg-stone-100 border border-stone-200 dark:border-stone-700 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition"><svg viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" class="w-[18px] h-[18px]"><path d="M380-160q133 0 226.5-93.5T700-480q0-133-93.5-226.5T380-800h-21q-10 0-19 2 57 66 88.5 147.5T460-480q0 89-31.5 170.5T340-162q9 2 19 2h21Zm0 80q-53 0-103.5-13.5T180-134q93-54 146.5-146T380-480q0-108-53.5-200T180-826q46-27 96.5-40.5T380-880q83 0 156 31.5T663-763q54 54 85.5 127T780-480q0 83-31.5 156T663-197q-54 54-127 85.5T380-80Zm80-400Z"/></svg></button>
   </div>
 </header>
 
 <main class="max-w-xl mx-auto px-4 pt-6 space-y-4">
-  <section class="bg-white rounded-3xl border border-stone-100 shadow-sm p-5">
+  <section class="card card-hover card-enter p-5">
     <div class="flex items-center gap-2">
       <span id="puntoEstado" class="w-2.5 h-2.5 rounded-full bg-stone-300"></span>
       <span id="textoEstado" class="text-sm font-medium text-stone-600">Conectando...</span>
     </div>
     <p class="text-xs text-stone-400 mt-2">
-      Este es el Paso 1: solo confirma que la conexion en tiempo real funciona.
       Los eventos reales (WhatsApp entrante/saliente, guardados desde la web, llamadas a
       la IA, correos...) se iran conectando en los siguientes pasos.
     </p>
   </section>
+
+  <!-- Quien esta usando la app ahora mismo. La lista la manda el servidor por Socket.io
+       cada vez que alguien entra o sale (ver services/socket.js). -->
+  <section class="card card-hover p-5">
+    <div class="flex items-center justify-between gap-2 flex-wrap mb-1">
+      <h2 class="font-semibold text-stone-800">Quien esta usando la app</h2>
+      <span id="totalPersonas" class="text-xs font-semibold text-stone-500">&mdash;</span>
+    </div>
+    <p class="text-xs text-stone-400 mb-3">
+      En tiempo real. El nombre es el que cada quien escribio en &quot;Tu nombre&quot; dentro del bot.
+    </p>
+    <div id="listaPersonas" class="space-y-2">
+      <div class="skeleton-line w-2/3"></div>
+      <div class="skeleton-line w-1/2"></div>
+    </div>
+  </section>
 </main>
 
 <script src="/socket.io/socket.io.min.js"></script>
-<script>
-const puntoEstado = document.getElementById('puntoEstado');
-const textoEstado = document.getElementById('textoEstado');
-
-const socket = io();
-
-socket.on('connect', () => {
-  puntoEstado.className = 'w-2.5 h-2.5 rounded-full bg-green-500';
-  textoEstado.textContent = 'Conectado ✓';
-});
-socket.on('disconnect', () => {
-  puntoEstado.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
-  textoEstado.textContent = 'Desconectado';
-});
-socket.on('connect_error', (err) => {
-  puntoEstado.className = 'w-2.5 h-2.5 rounded-full bg-amber-500';
-  textoEstado.textContent = 'Error de conexion: ' + err.message;
-});
-</script>
+<script defer src="/js/dist/actividad.7cb14169.bundle.js"></script>
 </body>
 </html>

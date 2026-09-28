@@ -1,0 +1,2 @@
+# Zips que arma deploy.ps1 -Zip / -ZipOnly (se regeneran en cada deploy).
+out/

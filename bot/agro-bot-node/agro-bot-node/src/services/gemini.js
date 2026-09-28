@@ -1,5 +1,6 @@
 const axios = require('axios');
 const config = require('../config');
+const metricas = require('./metricas');
 const {
   construirPromptTexto,
   construirPromptAudio,
@@ -8,9 +9,17 @@ const {
   construirPromptConsultaForzada,
   construirPromptConsultaForzadaAudio,
 } = require('../prompt');
+const {
+  parsearRespuestaAuto,
+  parsearRespuestaForzada,
+  parsearRespuestaConsulta,
+} = require('../lib/parsearRespuestaIA');
 
-const GEMINI_URL = () =>
-  `https://generativelanguage.googleapis.com/v1beta/models/${config.gemini.model}:generateContent`;
+// El modelo puede venir por llamada (el usuario lo elige en el compositor de la pagina);
+// si no viene, se usa el del .env. Asi se puede probar otro modelo sin reiniciar nada.
+const modeloDe = (modelo) => modelo || config.gemini.model;
+const GEMINI_URL = (modelo) =>
+  `https://generativelanguage.googleapis.com/v1beta/models/${modeloDe(modelo)}:generateContent`;
 
 // Nota: las API keys nuevas de Google AI Studio empiezan con "AQ." (en vez de "AIzaSy...")
 // y no funcionan bien como query param (?key=...). Por eso se manda como header,
@@ -40,97 +49,86 @@ function limpiarYParsear(raw) {
   }
 }
 
-// Misma logica que el nodo "Parsear respuesta Gemini": si el JSON viene invalido,
-// cae en un resultado "no_identificada" en vez de tronar.
-function parsearRespuestaAuto(data, raw) {
-  if (!data) return { tabla: 'no_identificada', confianza: 'baja', texto_transcrito: raw || '', campos: {} };
-  return {
-    tabla: data.tabla || 'no_identificada',
-    confianza: data.confianza || 'baja',
-    texto_transcrito: data.texto_transcrito || '',
-    campos: data.campos || {},
-  };
-}
-
-function parsearRespuestaForzada(data, raw) {
-  if (!data) return { confianza: 'baja', texto_transcrito: raw || '', campos: {} };
-  return {
-    confianza: data.confianza || 'baja',
-    texto_transcrito: data.texto_transcrito || '',
-    campos: data.campos || {},
-  };
-}
-
-function parsearRespuestaConsulta(data, raw) {
-  if (!data) return { texto_transcrito: raw || '', campos: {} };
-  return {
-    texto_transcrito: data.texto_transcrito || '',
-    campos: data.campos || {},
-  };
-}
+// Nota: parsearRespuestaAuto/Forzada/Consulta ahora viven en lib/parsearRespuestaIA.js
+// (compartidas con services/claude.js) -- si el JSON viene invalido/vacio, caen en un
+// resultado "no_identificada" en vez de tronar, igual que antes.
 
 // --- Automatico (WhatsApp): Gemini decide la tabla o si es consulta ---
 
-async function clasificarTexto(textoBody) {
+async function clasificarTexto(textoBody, modelo) {
   const prompt = construirPromptTexto(textoBody);
-  const { data, raw } = await llamarGeminiCrudo([{ text: prompt }]);
+  const { data, raw } = await llamarGeminiCrudo([{ text: prompt }], modelo);
   return parsearRespuestaAuto(data, raw);
 }
 
-async function clasificarAudio(audioBase64, mimeType) {
+async function clasificarAudio(audioBase64, mimeType, modelo) {
   const prompt = construirPromptAudio();
   const { data, raw } = await llamarGeminiCrudo([
     { text: prompt },
     { inline_data: { mime_type: mimeType || 'audio/ogg', data: audioBase64 } },
-  ]);
+  ], modelo);
   return parsearRespuestaAuto(data, raw);
 }
 
 // --- Forzado (pagina web, botones "Agregar Datos" por tabla) ---
 
-async function extraerCamposTablaForzada(tabla, textoBody) {
+async function extraerCamposTablaForzada(tabla, textoBody, modelo) {
   const prompt = construirPromptTablaForzada(tabla, textoBody);
-  const { data, raw } = await llamarGeminiCrudo([{ text: prompt }]);
+  const { data, raw } = await llamarGeminiCrudo([{ text: prompt }], modelo);
   return parsearRespuestaForzada(data, raw);
 }
 
-async function extraerCamposTablaForzadaAudio(tabla, audioBase64, mimeType) {
+async function extraerCamposTablaForzadaAudio(tabla, audioBase64, mimeType, modelo) {
   const prompt = construirPromptTablaForzadaAudio(tabla);
   const { data, raw } = await llamarGeminiCrudo([
     { text: prompt },
     { inline_data: { mime_type: mimeType || 'audio/ogg', data: audioBase64 } },
-  ]);
+  ], modelo);
   return parsearRespuestaForzada(data, raw);
 }
 
 // --- Forzado (pagina web, botones "Leer / Preguntar" por tabla) ---
 
-async function extraerConsultaForzada(tabla, textoBody) {
+async function extraerConsultaForzada(tabla, textoBody, modelo) {
   const prompt = construirPromptConsultaForzada(tabla, textoBody);
-  const { data, raw } = await llamarGeminiCrudo([{ text: prompt }]);
+  const { data, raw } = await llamarGeminiCrudo([{ text: prompt }], modelo);
   return parsearRespuestaConsulta(data, raw);
 }
 
-async function extraerConsultaForzadaAudio(tabla, audioBase64, mimeType) {
+async function extraerConsultaForzadaAudio(tabla, audioBase64, mimeType, modelo) {
   const prompt = construirPromptConsultaForzadaAudio(tabla);
   const { data, raw } = await llamarGeminiCrudo([
     { text: prompt },
     { inline_data: { mime_type: mimeType || 'audio/ogg', data: audioBase64 } },
-  ]);
+  ], modelo);
   return parsearRespuestaConsulta(data, raw);
 }
 
 // Variante de llamarGemini que regresa el JSON crudo (o null si no se pudo parsear)
 // junto con el texto original, para que cada parseador de arriba decida el formato.
-async function llamarGeminiCrudo(parts, intento = 1) {
+async function llamarGeminiCrudo(parts, modelo, intento = 1) {
   const MAX_INTENTOS = 3;
   const body = { contents: [{ parts }] };
+  // Se mide cada intento por separado (un 503 con reintento cuenta como 2 llamadas),
+  // que es justo lo que interesa ver en el panel de monitoreo.
+  const t0 = Date.now();
   try {
-    const { data: respuesta } = await axios.post(GEMINI_URL(), body, { headers: headers() });
+    const { data: respuesta } = await axios.post(GEMINI_URL(modelo), body, { headers: headers() });
+    metricas.registrarLlamada({
+      proveedor: 'gemini', modelo: modeloDe(modelo), ok: true, ms: Date.now() - t0,
+    });
     const raw = respuesta?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
     return { data: limpiarYParsear(raw), raw };
   } catch (e) {
     const status = e.response?.status;
+    metricas.registrarLlamada({
+      proveedor: 'gemini',
+      modelo: modeloDe(modelo),
+      ok: false,
+      ms: Date.now() - t0,
+      estado: status,
+      mensaje: e.response?.data?.error?.message || e.message,
+    });
 
     // 429 = se acabo la cuota del plan (por minuto o por dia). Reintentar de inmediato
     // no sirve: la cuenta regresiva de Google tarda decenas de segundos en resetear, asi
@@ -154,7 +152,7 @@ async function llamarGeminiCrudo(parts, intento = 1) {
       const espera = 1500 * intento;
       console.log(`Gemini ocupado (${status}), reintentando en ${espera}ms... (intento ${intento + 1}/${MAX_INTENTOS})`);
       await esperar(espera);
-      return llamarGeminiCrudo(parts, intento + 1);
+      return llamarGeminiCrudo(parts, modelo, intento + 1);
     }
     throw e;
   }

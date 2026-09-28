@@ -333,14 +333,14 @@ export default function ReportesScreen({ navigation }) {
                      borderBottomWidth: 1, borderBottomColor: '#e0e0e0',
                      paddingHorizontal: 20, paddingVertical: 14 }}>
         <Pressable onPress={() => navigation.goBack()} style={{ padding: 2 }}>
-          <Ionicons name="chevron-back" size={22} color="#c026d3" />
+          <Ionicons name="chevron-back" size={22} color="#9d6b99" />
         </Pressable>
-        <Ionicons name="bar-chart-outline" size={22} color="#c026d3" />
+        <Ionicons name="bar-chart-outline" size={22} color="#9d6b99" />
         <Text style={{ flex: 1, fontSize: 17, fontWeight: '700', color: '#161616' }}>
           Reportes de Campo
         </Text>
         <Pressable onPress={fetchLista} style={{ padding: 4 }}>
-          <Ionicons name="refresh-outline" size={20} color="#c026d3" />
+          <Ionicons name="refresh-outline" size={20} color="#9d6b99" />
         </Pressable>
       </View>
 

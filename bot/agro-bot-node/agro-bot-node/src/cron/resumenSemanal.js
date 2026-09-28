@@ -166,4 +166,12 @@ function programarResumenSemanal() {
   console.log(`[resumen semanal] programado con cron "${config.resumenSemanalCron}" (${config.timezone})`);
 }
 
-module.exports = { programarResumenSemanal, ejecutarResumenSemanal };
+module.exports = {
+  programarResumenSemanal,
+  ejecutarResumenSemanal,
+  // Exportados para reutilizarlos en la captura manual de "Resumen Semanal" (ver
+  // src/lib/guardarRegistro.js) -- mismo formato de correo y de cuadricula que usa el
+  // cron automatico, para que un resumen escrito a mano se vea/guarde exactamente igual.
+  armarCuerpo,
+  armarCuadricula,
+};

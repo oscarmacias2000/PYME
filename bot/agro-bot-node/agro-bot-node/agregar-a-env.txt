@@ -1,0 +1,4 @@
+
+# --- Agregado para Prisma/base de datos (pegar estas 2 lineas al final de tu .env real) ---
+SESSION_SECRET=e4ada25890da4d32637637c488161ffb32337e0b413f2049bd742d80f2cc5092
+DATABASE_URL="mysql://usuario_db:password_db@host:3306/nombre_db"

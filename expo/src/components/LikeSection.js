@@ -8,12 +8,16 @@ export default function LikeSection() {
   const [likes, setLikes] = useState(null);
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     fetch(`${API}/api/likes`)
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then(d => setLikes(d.likes))
-      .catch(() => {});
+      .catch(() => setError(true));
   }, []);
 
   async function handleLike() {
@@ -21,10 +25,14 @@ export default function LikeSection() {
     setLoading(true);
     try {
       const r = await fetch(`${API}/api/likes`, { method: 'POST' });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const d = await r.json();
       setLikes(d.likes);
       setLiked(true);
-    } catch {}
+      setError(false);
+    } catch {
+      setError(true);
+    }
     setLoading(false);
   }
 
@@ -82,6 +90,13 @@ export default function LikeSection() {
             {likes.toLocaleString('es-MX')} {likes === 1 ? 'persona le' : 'personas les'} gusta esto
           </Text>
         </View>
+      )}
+
+      {error && (
+        <Text style={{ fontSize: 13, color: '#8d8d8d' }}
+          className="dark:text-carbon-gray50">
+          No pudimos conectar con el servidor. Intenta más tarde.
+        </Text>
       )}
     </View>
   );

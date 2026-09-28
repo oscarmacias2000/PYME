@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Usuarios - Agro PYME</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png?v=2">
+<link rel="icon" href="/favicon.ico?v=2" sizes="any">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png?v=2">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Segoe UI', system-ui, sans-serif; }
+</style>
+</head>
+<body class="min-h-screen bg-stone-50 px-4 py-8">
+
+<div class="max-w-3xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-2">
+      <span class="text-2xl">🌱</span>
+      <span class="font-semibold text-stone-700 tracking-tight">Agro PYME · Usuarios</span>
+    </div>
+    <a href="/bot-web" class="text-sm text-stone-500 hover:text-stone-800">&larr; Volver al bot</a>
+  </div>
+
+  <div class="bg-white rounded-3xl shadow-sm border border-stone-100 p-6 mb-6">
+    <h1 class="text-lg font-bold text-stone-800 mb-1">Crear usuario nuevo</h1>
+    <p class="text-sm text-stone-400 mb-4">Solo cuentas de administrador pueden ver esta pagina.</p>
+
+    <form id="formCrear" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <input type="text" id="cNombre" placeholder="Nombre completo" required
+        class="border border-stone-200 rounded-full px-4 py-2.5 text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white">
+      <input type="text" id="cUsuario" placeholder="Usuario (para iniciar sesion)" required
+        class="border border-stone-200 rounded-full px-4 py-2.5 text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white">
+      <input type="email" id="cEmail" placeholder="Correo (opcional)"
+        class="border border-stone-200 rounded-full px-4 py-2.5 text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white">
+      <input type="password" id="cPassword" placeholder="Contraseña (min. 6 caracteres)" required
+        class="border border-stone-200 rounded-full px-4 py-2.5 text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white">
+      <select id="cRol"
+        class="border border-stone-200 rounded-full px-4 py-2.5 text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white sm:col-span-2">
+        <option value="usuario">Usuario normal (captura reportes)</option>
+        <option value="admin">Administrador (puede crear/gestionar usuarios)</option>
+      </select>
+      <button type="submit"
+        class="sm:col-span-2 bg-stone-900 hover:bg-black text-white font-semibold rounded-full py-2.5 text-sm transition">
+        Crear usuario
+      </button>
+    </form>
+    <div id="msgCrear" class="mt-3 text-sm text-center" hidden></div>
+  </div>
+
+  <div class="bg-white rounded-3xl shadow-sm border border-stone-100 p-6">
+    <h2 class="text-lg font-bold text-stone-800 mb-4">Equipo</h2>
+    <div id="listaUsuarios" class="space-y-2"></div>
+  </div>
+</div>
+
+<script>
+async function cargarUsuarios() {
+  const res = await fetch('/admin/usuarios');
+  const data = await res.json();
+  const cont = document.getElementById('listaUsuarios');
+  cont.innerHTML = '';
+  if (!data.ok) {
+    cont.innerHTML = '<p class="text-sm text-red-600">' + (data.mensaje || 'No se pudo cargar la lista.') + '</p>';
+    return;
+  }
+  data.usuarios.forEach((u) => {
+    const fila = document.createElement('div');
+    fila.className = 'flex items-center justify-between border border-stone-100 rounded-2xl px-4 py-3';
+    fila.innerHTML = `
+      <div>
+        <p class="text-sm font-semibold text-stone-800">${escapeHtml(u.nombre)} <span class="text-stone-400 font-normal">(${escapeHtml(u.usuario)})</span></p>
+        <p class="text-xs text-stone-400">${u.rol === 'admin' ? 'Administrador' : 'Usuario'} · ${u.activo ? 'Activo' : 'Desactivado'}</p>
+      </div>
+      <div class="flex gap-2">
+        <button data-id="${u.id}" class="btnPassword text-xs bg-stone-100 hover:bg-stone-200 rounded-full px-3 py-1.5">Resetear contraseña</button>
+        <button data-id="${u.id}" data-activo="${u.activo}" class="btnActivo text-xs rounded-full px-3 py-1.5 ${u.activo ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-700 hover:bg-green-100'}">
+          ${u.activo ? 'Desactivar' : 'Activar'}
+        </button>
+      </div>`;
+    cont.appendChild(fila);
+  });
+
+  cont.querySelectorAll('.btnPassword').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const nueva = prompt('Nueva contraseña (min. 6 caracteres):');
+      if (!nueva) return;
+      const res = await fetch(`/admin/usuarios/${btn.dataset.id}/password`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: nueva }),
+      });
+      const data = await res.json();
+      alert(data.ok ? 'Contraseña actualizada.' : (data.mensaje || 'Error.'));
+    });
+  });
+
+  cont.querySelectorAll('.btnActivo').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const activo = btn.dataset.activo === 'true';
+      const res = await fetch(`/admin/usuarios/${btn.dataset.id}/activo`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activo: !activo }),
+      });
+      const data = await res.json();
+      if (data.ok) cargarUsuarios();
+      else alert(data.mensaje || 'Error.');
+    });
+  });
+}
+
+function escapeHtml(v) {
+  return String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+document.getElementById('formCrear').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById('msgCrear');
+  msg.hidden = true;
+  const body = {
+    nombre: document.getElementById('cNombre').value,
+    usuario: document.getElementById('cUsuario').value,
+    email: document.getElementById('cEmail').value,
+    password: document.getElementById('cPassword').value,
+    rol: document.getElementById('cRol').value,
+  };
+  const res = await fetch('/admin/usuarios', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  msg.hidden = false;
+  msg.className = 'mt-3 text-sm text-center ' + (data.ok ? 'text-green-700' : 'text-red-600');
+  msg.textContent = data.ok ? 'Usuario creado.' : (data.mensaje || 'No se pudo crear.');
+  if (data.ok) {
+    e.target.reset();
+    cargarUsuarios();
+  }
+});
+
+cargarUsuarios();
+</script>
+</body>
+</html>

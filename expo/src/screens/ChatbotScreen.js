@@ -3,9 +3,7 @@ import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 import Screen from '../components/ui/Screen';
-
-// Cambia esta URL por la de tu servidor cuando lo despliegues
-const CHATBOT_URL = 'https://chat.buildwiselabs.duckdns.org';
+import { CHATBOT_URL } from '../constants/chatbot';
 
 function ChatbotWeb({ navigation }) {
   return (
@@ -13,9 +11,9 @@ function ChatbotWeb({ navigation }) {
       <View className="flex-1 overflow-hidden rounded-none" style={{ minHeight: 600 }}>
         <View className="flex-row items-center gap-3 border-b border-carbon-gray20 dark:border-carbon-gray90 px-5 py-4">
           <Pressable onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={22} color="#c026d3" />
+            <Ionicons name="chevron-back" size={22} color="#9d6b99" />
           </Pressable>
-          <Ionicons name="chatbubbles-outline" size={22} color="#c026d3" />
+          <Ionicons name="chatbubbles-outline" size={22} color="#9d6b99" />
           <Text className="font-plexsemibold text-lg text-carbon-black dark:text-white">
             Chatbot BuildWise
           </Text>
@@ -44,13 +42,13 @@ function ChatbotNative({ navigation }) {
         style={{ paddingTop: 48 }}
       >
         <Pressable onPress={() => navigation.goBack()} className="p-1">
-          <Ionicons name="chevron-back" size={24} color="#c026d3" />
+          <Ionicons name="chevron-back" size={24} color="#9d6b99" />
         </Pressable>
-        <Ionicons name="chatbubbles-outline" size={22} color="#c026d3" />
+        <Ionicons name="chatbubbles-outline" size={22} color="#9d6b99" />
         <Text className="flex-1 font-plexsemibold text-base text-carbon-black dark:text-white">
           Chatbot BuildWise
         </Text>
-        {loading && <ActivityIndicator size="small" color="#c026d3" />}
+        {loading && <ActivityIndicator size="small" color="#9d6b99" />}
       </View>
 
       {error ? (

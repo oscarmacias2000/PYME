@@ -10,12 +10,26 @@ function getClient() {
   return sheetsClient;
 }
 
-// Encabezados exactos de cada hoja (mismo orden que los nodos "Guardar en ..." de n8n,
-// mas "maquinaria" e "insumos" agregados despues, sacados de "Reporte campo 3.0.xlsx").
+// Encabezados exactos de cada hoja. IMPORTANTE (corregido -- ver nota mas abajo):
+// 'reporte_campo' y 'maquinaria' viven en el archivo "Reporte_campo 4.1.xlsx" y esa
+// version 4.1 metio columnas de FORMULA intercaladas entre las columnas de captura
+// manual (Margen/% Cumplimiento en Rendimiento Diario Jornal; Horometro
+// anterior/Horas trabajadas/Dias desde ultima carga/Consumo real/Costo real por
+// hora/Consumo prom. movil/Estatus-Alerta/Costo Total en Maquinaria). Estas listas
+// tienen que ser la posicion EXACTA de cada columna real de la hoja (de la A en
+// adelante, sin saltarse ninguna), aunque no vayamos a escribir en todas -- guardarFila
+// arma la fila completa y las columnas de formula simplemente se dejan '' (en blanco,
+// para que Sheets siga calculando ahi si alguien arrastra la formula hacia abajo a mano).
+// Ninguna de las dos hojas tiene una columna real "Reportado por" -- antes se escribia
+// esa info en la siguiente columna en secuencia, que en la hoja real ya es una columna
+// de formula (o de captura manual) distinta, corrompiendola. Se deja de escribir
+// "Reportado por" en estas dos hojas hasta que se decida un lugar seguro para ella
+// (agregar una columna nueva en la hoja real, fuera del alcance de este arreglo).
 const COLUMNAS_REPORTE_CAMPO = [
   'Fecha', 'Actividad', 'Ubicacion', 'Huerta', 'Responsable', 'N° de Personas',
   'Cantidad Realizada', 'Unidad de Medida', 'Meta de Rendimiento (jornal)',
-  '¿Incidencia?', 'Motivo de Incidencia', 'Observaciones', 'Reportado por',
+  'Margen (Real - Meta)', '% Cumplimiento', // formula -- no se escribe, queda ''
+  '¿Incidencia?', 'Motivo de Incidencia', 'Observaciones',
 ];
 
 const COLUMNAS_ACTIVIDADES = [
@@ -25,14 +39,23 @@ const COLUMNAS_ACTIVIDADES = [
 ];
 
 const COLUMNAS_MAQUINARIA = [
-  'Fecha', 'Equipo', 'Implemento', 'Tipo de Combustible', 'Actividad', 'Ubicacion',
-  'Huerta', 'Responsable', 'Litros', 'Horas', 'Costo Total', 'Avance/Rendimiento (ha)',
-  'Observaciones', 'Reportado por',
+  'Fecha', 'Equipo', 'Implemento', 'Tipo Comb.', 'Actividad (informativo)',
+  'Ubicación (informativo)', 'Huerta (informativo)', 'Responsable de la carga',
+  'Litros cargados', '¿Tanque lleno?',
+  'Horómetro anterior', // formula (lookup del ultimo horometro del equipo) -- no se escribe
+  'Horómetro actual',
+  'Horas trabajadas', 'Días desde última carga', 'Consumo real (L/h)', // formula -- no se escribe
+  'Precio Diésel ($/L)',
+  'Costo real por hora', 'Consumo prom. móvil (L/h)', 'Estatus / Alerta', // formula -- no se escribe
+  'Costo Total (Carga)', // formula (Litros x Precio) -- no se escribe, ver nota abajo
+  'Avance/Rendim. (ha)', 'Observaciones',
 ];
 
 const COLUMNAS_INSUMOS = [
   'Fecha', 'Recurso / Insumo', 'Cantidad', 'Unidad de Medida', 'Motivo de Uso',
-  'Actividad', 'Huerta', 'Costo por Unidad', 'Costo Total', 'Responsable', 'Reportado por',
+  'Actividad', 'Huerta', 'Costo por Unidad',
+  'Costo Total', // formula (Cantidad x Costo por Unidad) -- no se escribe, ver nota abajo
+  'Responsable', 'Reportado por',
 ];
 
 const CAMPOS_A_COLUMNAS_REPORTE_CAMPO = {
@@ -49,17 +72,28 @@ const CAMPOS_A_COLUMNAS_ACTIVIDADES = {
   NominaTotal: 'Nómina Total', Observaciones: 'Observaciones',
 };
 
+// Nota sobre las columnas de formula que se dejan en blanco (Margen, % Cumplimiento,
+// Horometro anterior, Horas trabajadas, Dias desde ultima carga, Consumo real, Costo
+// real por hora, Consumo prom. movil, Estatus/Alerta, Costo Total (Carga), Costo Total
+// de Insumos): por ahora esas celdas quedan vacias en las filas que agrega el bot -- no
+// se recalculan solas via API. Hay que arrastrar la formula de la fila de arriba a mano
+// en Sheets/Excel (o resolverlo en una siguiente pasada calculando el valor en el
+// backend). AvanceRendimiento/Observaciones en Maquinaria SI se escriben normal: esas
+// dos columnas tenian pegada por error la formula de Estatus/Alerta y Costo Total en
+// las filas viejas (bug del archivo original, no del bot) -- en las filas nuevas que
+// agregue el bot quedan como columnas libres de texto/numero, como deberia ser.
 const CAMPOS_A_COLUMNAS_MAQUINARIA = {
-  Fecha: 'Fecha', Equipo: 'Equipo', Implemento: 'Implemento', TipoCombustible: 'Tipo de Combustible',
-  Actividad: 'Actividad', Ubicacion: 'Ubicacion', Huerta: 'Huerta', Responsable: 'Responsable',
-  Litros: 'Litros', Horas: 'Horas', CostoTotal: 'Costo Total', AvanceRendimiento: 'Avance/Rendimiento (ha)',
-  Observaciones: 'Observaciones',
+  Fecha: 'Fecha', Equipo: 'Equipo', Implemento: 'Implemento', TipoCombustible: 'Tipo Comb.',
+  Actividad: 'Actividad (informativo)', Ubicacion: 'Ubicación (informativo)', Huerta: 'Huerta (informativo)',
+  Responsable: 'Responsable de la carga', Litros: 'Litros cargados', TanqueLleno: '¿Tanque lleno?',
+  HorometroActual: 'Horómetro actual', PrecioDiesel: 'Precio Diésel ($/L)',
+  AvanceRendimiento: 'Avance/Rendim. (ha)', Observaciones: 'Observaciones',
 };
 
 const CAMPOS_A_COLUMNAS_INSUMOS = {
   Fecha: 'Fecha', RecursoInsumo: 'Recurso / Insumo', Cantidad: 'Cantidad', UnidadDeMedida: 'Unidad de Medida',
   MotivoDeUso: 'Motivo de Uso', Actividad: 'Actividad', Huerta: 'Huerta', CostoPorUnidad: 'Costo por Unidad',
-  CostoTotal: 'Costo Total', Responsable: 'Responsable',
+  Responsable: 'Responsable',
 };
 
 const TABLAS = {
@@ -124,11 +158,22 @@ async function guardarFila(tabla, campos, reportadoPor) {
     range: `'${tab}'!A:A`,
   });
   const filasExistentes = data.values || [];
-  // +1 = despues de la ultima fila con datos en A, pero nunca antes de "filaInicial" --
-  // algunas hojas (ej. Actividades Diarias) tienen filas viejas arriba (instrucciones de
-  // la plantilla, basura de pruebas con n8n) que el usuario prefiere no tocar ni borrar,
-  // asi que los registros nuevos siempre se escriben de esa fila para abajo.
-  const siguienteFila = Math.max(filasExistentes.length + 1, filaInicial || 1);
+  // Busca el primer hueco real en la columna A a partir de "filaInicial" -- NO se puede
+  // usar simplemente "filasExistentes.length + 1", porque esa columna se lee completa
+  // hasta la ULTIMA celda con algo escrito, y algunas hojas (ej. Actividades Diarias)
+  // tienen basura vieja de pruebas con n8n mucho mas abajo, con un monton de filas vacias
+  // en medio. Si se usara el largo total, el registro nuevo se iria hasta despues de esa
+  // basura en vez de seguir la secuencia justo despues del ultimo dato real.
+  const inicio = filaInicial || 1;
+  let siguienteFila = inicio;
+  for (let i = inicio - 1; i < filasExistentes.length; i++) {
+    const valor = (filasExistentes[i] && filasExistentes[i][0]) || '';
+    if (String(valor).trim() === '') {
+      siguienteFila = i + 1;
+      break;
+    }
+    siguienteFila = i + 2;
+  }
 
   const ultimaColumna = columnaLetra(columnas.length);
   await sheets.spreadsheets.values.update({
@@ -209,6 +254,22 @@ async function leerHojaCruda(id, tab) {
   return data.values || [];
 }
 
+// Lista las pestañas de un archivo de Google Sheets: [{ gid, titulo }]. Se usa en el
+// menu "Documentos" para poder elegir QUE hoja descargar, en vez de bajar el archivo
+// completo con todas sus pestañas (ver routes/botWeb.js -> /documentos/hojas).
+// Solo pide las propiedades que se ocupan (fields), no el contenido de las celdas.
+async function listarPestanas(id) {
+  const sheets = getClient();
+  const { data } = await sheets.spreadsheets.get({
+    spreadsheetId: id,
+    fields: 'sheets.properties(sheetId,title,index)',
+  });
+  return (data.sheets || [])
+    .map((h) => h.properties || {})
+    .sort((a, b) => (a.index ?? 0) - (b.index ?? 0))
+    .map((p) => ({ gid: p.sheetId, titulo: p.title }));
+}
+
 // Escribe la cuadricula del resumen semanal en su propia pestaña (dentro del mismo
 // archivo de Reporte de Campo), igual que en la plantilla original. La pestaña debe
 // existir de antemano (se crea a mano una vez, ver README).
@@ -228,6 +289,7 @@ module.exports = {
   leerHoja,
   leerHojaCruda,
   leerActividadesDiarias,
+  listarPestanas,
   escribirResumenSemanal,
   configDeTabla,
   normalizarFecha,

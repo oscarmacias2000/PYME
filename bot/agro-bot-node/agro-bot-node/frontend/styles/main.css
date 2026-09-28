@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Antes esto vivia repetido en un <style> suelto dentro de cada .html (index.html,
+   login.html, actividad.html), cargando Tailwind por CDN (cdn.tailwindcss.com). Ahora
+   es un build de verdad: Tailwind compilado con tu tema (ver tailwind.config.js),
+   purgado (solo se manda al navegador el CSS que realmente se usa) y sin el warning de
+   "cdn.tailwindcss.com should not be used in production". */
+
+@layer base {
+  body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 8px; }
+  [hidden] { display: none !important; }
+}
+
+@layer components {
+  /* Pastillas de seleccion (modo Agregar/Leer, etc. -- ver index.html) */
+  .pill { @apply transition-all duration-150 ease-in-out; }
+  .pill:not(.activa) { @apply bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700; }
+  .pill:not(.activa):hover { @apply bg-stone-200 dark:bg-stone-700; }
+  /* En modo oscuro la pastilla activa se invierte (clara sobre fondo oscuro) para que
+     siga resaltando -- igual que los botones principales, ver el bloque "Modo oscuro"
+     mas abajo. */
+  .pill.activa { @apply bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 shadow-soft scale-[1.02]; }
+
+  /* Chips secundarios (tablas de Historial, pestañas de "enviar por correo"...) -- antes
+     vivian como una tira larga de clases repetida en cada boton; ahora es una sola clase,
+     y de paso su hover pasa a negro solido para que se sientan mas "con peso". Se le agrega
+     ademas un "levantamiento" al pasar el mouse y un hundido tactil al soltar (mismo
+     espiritu que .btn-tactile) para que se sientan clickeables de verdad, no solo pintados. */
+  .chip { @apply bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 text-xs font-semibold rounded-full py-2.5 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-soft active:scale-95 active:translate-y-0; }
+  .chip:hover { @apply bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 border-stone-900 dark:border-stone-100; }
+
+  /* Tabs del sidebar (Historial / Acciones / Noticias / Actividad en vivo) -- se le agrega
+     un hundido tactil al hacer click, igual que el resto de los botones interactivos. */
+  .sidebar-tab { @apply text-stone-400 dark:text-stone-500 transition-all duration-150 active:scale-90; }
+  .sidebar-tab.activa { @apply text-stone-900 dark:text-stone-100; box-shadow: inset 0 -2px 0 #1c1917; }
+  .dark .sidebar-tab.activa { box-shadow: inset 0 -2px 0 #f5f5f4; }
+
+  /* Splash de carga (logo + skeleton) mientras se sabe si hay sesion iniciada */
+  .logo-pulse { @apply animate-logo-pulse; }
+  .skeleton-bar {
+    background: linear-gradient(90deg, #e7e5e4 25%, #f5f5f4 37%, #e7e5e4 63%);
+    background-size: 400% 100%;
+    @apply animate-skeleton-shimmer;
+  }
+  /* Placeholder de "cargando" reutilizable -- una barra angosta con el mismo shimmer del
+     splash, en vez de un simple texto "Cargando...". Se usa en index.js (documentos e
+     historial) mientras llega la respuesta del servidor. */
+  .skeleton-line { @apply h-3 rounded-full skeleton-bar; }
+  #splashCarga { @apply transition-opacity duration-250 ease-in-out; }
+
+  /* Tarjetas -- mismo fondo blanco / bordes suaves de siempre, nada mas con una sombra
+     un poco mas cuidada y consistente (antes cada tarjeta traia su propio shadow-sm o
+     shadow-lg suelto). */
+  .card { @apply bg-white dark:bg-stone-900 rounded-3xl border border-stone-100 dark:border-stone-800 shadow-soft; }
+  .card-elevated { @apply bg-white dark:bg-stone-900 rounded-3xl border border-stone-100 dark:border-stone-800 shadow-soft-lg; }
+  .card-hover { @apply transition-shadow duration-250 hover:shadow-soft-lg; }
+  /* Entrada suave al cargar la pagina, para las tarjetas "protagonistas" (login,
+     estado de actividad en vivo) -- ver .fade-in-up en tailwind.config.js. */
+  .card-enter { @apply animate-fade-in-up; }
+  /* Retroalimentacion tactil en botones clave (enviar, guardar, entrar...): un pequeño
+     "levantamiento" al pasar el mouse y un "hundido" al presionar, para que se sientan mas
+     vivos/responsivos en vez de solo cambiar de color. */
+  .btn-tactile { @apply transition-transform duration-150 hover:scale-[1.03] active:scale-95; }
+
+  /* Encabezados de columna clickeables (tabla de Historial, ver index.js) -- ademas del
+     cambio de color al pasar el mouse que ya tenian, se les agrega fondo resaltado y el
+     mismo hundido tactil de .btn-tactile para que se note que son botones de ordenar. */
+  .th-ordenable { @apply transition-all duration-150 hover:bg-stone-100 dark:hover:bg-stone-800 active:scale-[0.97]; }
+}
+
+/* Sidebar en movil (se abre encima del contenido, no en columna) */
+#sidebar { transition: transform .2s ease; }
+#sidebarBackdrop { transition: opacity .2s ease; }
+@media (max-width: 767px) {
+  #sidebar { position: fixed; top: 0; bottom: 0; left: 0; transform: translateX(-100%); z-index: 40; }
+  #sidebar.abierto { transform: translateX(0); }
+}
+
+/* ---------------------------------------------------------------------------
+   Modo oscuro -- se activa con la clase .dark en <html> (boton "Cambiar tema" en el
+   header de cada pagina, logica en frontend/js/tema.js; la primera aplicacion antes de
+   pintar la pagina vive en un <script> chiquito al principio de cada <head>, para no
+   "parpadear" con el tema equivocado).
+
+   En vez de agregar "dark:" a cada clase suelta de cada .html (serian decenas), aqui se
+   recolorea por selector los mismos tonos de stone/green/amber/red que el HTML ya usa --
+   togglear .dark cambia toda la app de un jalon. Los componentes propios (.card, .pill,
+   .chip, .sidebar-tab) ya traen su propia variante dark: mas arriba (esos SI pueden usar
+   @apply dark:... porque es la sintaxis nativa de Tailwind).
+
+   IMPORTANTE: aqui abajo se usan valores hex directos (nunca @apply). Un selector como
+   ".dark .bg-white" reutiliza el nombre de una utilidad (bg-white) que tambien se aplica
+   con @apply en .card/.card-elevated -- si aqui se hiciera "@apply bg-stone-900" en esa
+   misma regla, Tailwind tira "circular dependency" al compilar (paso por esto: build roto
+   con exactamente ese error). Con color de toda la vida en vez de @apply, no hay
+   ambiguedad posible y compila siempre. */
+.dark { color-scheme: dark; }
+
+.dark .bg-white { background-color: #1c1917; } /* stone-900 */
+.dark .bg-stone-50 { background-color: #0c0a09; } /* stone-950 */
+.dark .bg-stone-100 { background-color: #292524; } /* stone-800 */
+.dark .bg-stone-200 { background-color: #44403c; } /* stone-700 */
+.dark .hover\:bg-stone-50:hover { background-color: #292524; }
+.dark .hover\:bg-stone-100:hover { background-color: #44403c; }
+.dark .hover\:bg-stone-200:hover { background-color: #57534e; }
+.dark .focus\:bg-white:focus { background-color: #1c1917; }
+
+/* Botones/circulo "invertidos": los que hoy son negro solido con texto blanco (Entrar,
+   enviar texto, Confirmar y guardar, el circulo del avatar...) pasan a claro solido con
+   texto oscuro en modo oscuro, para que sigan resaltando sobre tarjetas que ahora
+   tambien son casi negras. */
+.dark .bg-stone-900.text-white { background-color: #f5f5f4; color: #1c1917; } /* stone-100 / stone-900 */
+.dark .bg-stone-900.text-white.hover\:bg-black:hover { background-color: #d6d3d1; } /* stone-300 */
+
+.dark .border-stone-100 { border-color: #292524; } /* stone-800 */
+.dark .border-stone-200 { border-color: #44403c; } /* stone-700 */
+.dark .border-stone-300 { border-color: #57534e; } /* stone-600 */
+.dark .divide-stone-100 > :not([hidden]) ~ :not([hidden]) { border-color: #292524; }
+
+.dark .text-stone-800 { color: #f5f5f4; } /* stone-100 */
+.dark .text-stone-700 { color: #e7e5e4; } /* stone-200 */
+.dark .text-stone-600 { color: #d6d3d1; } /* stone-300 */
+.dark .text-stone-500 { color: #a8a29e; } /* stone-400 */
+.dark .text-stone-400 { color: #78716c; } /* stone-500 */
+
+.dark .bg-green-50 { background-color: rgba(5, 46, 22, .4); }
+.dark .bg-green-100 { background-color: rgba(20, 83, 45, .5); }
+.dark .border-green-200 { border-color: #166534; } /* green-800 */
+.dark .text-green-700, .dark .text-green-800 { color: #86efac; } /* green-300 */
+
+.dark .bg-amber-50 { background-color: rgba(69, 26, 3, .4); }
+.dark .bg-amber-100 { background-color: rgba(120, 53, 15, .5); }
+.dark .border-amber-200 { border-color: #92400e; } /* amber-800 */
+.dark .text-amber-800 { color: #fcd34d; } /* amber-300 */
+
+.dark .bg-red-50 { background-color: rgba(69, 10, 10, .4); }
+.dark .bg-red-100 { background-color: rgba(127, 29, 29, .5); }
+.dark .border-red-200 { border-color: #7f1d1d; } /* red-800 */
+.dark .text-red-600, .dark .text-red-700, .dark .text-red-500 { color: #fca5a5; } /* red-300 */
+
+.dark .skeleton-bar {
+  background: linear-gradient(90deg, #292524 25%, #44403c 37%, #292524 63%);
+  background-size: 400% 100%;
+}
+
+/* El texto que se escribe en inputs/textarea no tenia color explicito (heredaba el
+   negro por defecto del navegador) -- en modo oscuro eso quedaria invisible sobre el
+   fondo oscuro del propio input. */
+.dark input, .dark textarea { color: #f5f5f4; }
+.dark input::placeholder, .dark textarea::placeholder { color: #78716c; }

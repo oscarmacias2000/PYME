@@ -11,6 +11,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 import authRoutes from './src/auth.js';
 import contactRoutes from './src/contact.js';
+import serviceDocsRoutes from './src/docsDb.js';
 import { SERVICES, DOCS } from './src/content.js';
 
 const app = express();
@@ -44,6 +45,9 @@ app.get('/api/services/:id', (req, res) => {
   res.json({ service });
 });
 app.get('/api/docs', (req, res) => res.json({ docs: DOCS }));
+
+// Documentacion de cada servicio (sidebar), desde Postgres (docker compose).
+app.use('/api/service-docs', serviceDocsRoutes);
 
 // Likes.
 let _likes = 0;

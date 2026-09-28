@@ -7,14 +7,14 @@ import Button from '../components/ui/Button';
 import Avatar from '../components/ui/Avatar';
 import { useAuth } from '../context/AuthContext';
 
-const COLORS = ['#c026d3', '#2f6bf5', '#7c3aed', '#161616', '#24a148'];
+const COLORS = ['#9d6b99', '#7088b3', '#7c3aed', '#161616', '#24a148'];
 
 export default function ProfileSettingsScreen({ navigation }) {
   const { user, isAuthenticated, updateProfile } = useAuth();
 
   const [name, setName] = useState(user?.name || '');
   const [photo, setPhoto] = useState(user?.photo || '');
-  const [color, setColor] = useState(user?.avatarColor || '#c026d3');
+  const [color, setColor] = useState(user?.avatarColor || '#9d6b99');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);

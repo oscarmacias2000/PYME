@@ -1,33 +1,31 @@
 node_modules/
-.env
 *.log
 resumenes/
 
 # Llave de la cuenta de servicio de Google -- el backend ya toma las credenciales del
-# .env (GOOGLE_SERVICE_ACCOUNT_EMAIL / GOOGLE_PRIVATE_KEY), este archivo nunca debe
+# .env (GOOGLE_SERVICE_ACCOUNT_EMAIL / GOOGLE_PRIVATE_KEY), estos archivos nunca deben
 # subirse a git ni al servidor.
 agro-bot-sheets-*.json
+chatbot-*.json
+*-credentials.json
+service-account*.json
+
+# Carpeta donde caen las claves .json descargadas de Google Cloud -- nunca deben vivir
+# en el repo ni en el servidor, una vez copiadas al .env se pueden borrar de aqui.
+Descargas/
 
 # Zips y carpetas que deja el flujo de sincronizacion, no son parte del proyecto.
 _actualizacion*.zip
 _update*.zip
 _to_delete/
 
-# Google Cloud credentials
-*.json
-!package.json
-!package-lock.json
-!tsconfig.json
-!app.json
-!expo.json
-chatbot-*.json
-*-credentials.json
-service-account*.json
+# Build de Tailwind/Webpack -- se regeneran solos con `npm run build` (o con
+# `npm start`/`npm run dev`, que lo corren antes por el script "prestart"/"predev").
+# Nunca se editan estos archivos a mano.
+src/public/css/
+src/public/js/dist/
 
-# Environment
+# Environment -- nunca subir el .env real, solo .env.example.
 .env
 .env.*
-!.env.exampleexpo/chatbot-506909-c905f91e44f7.json
-*.json
-expo/chatbot-506909-c905f91e44f7.json:
-*.json
+!.env.example

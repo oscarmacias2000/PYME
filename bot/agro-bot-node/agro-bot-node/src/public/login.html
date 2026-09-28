@@ -3,21 +3,39 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Iniciar sesion - pedregoza - bot inteligente</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  body { font-family: 'Segoe UI', system-ui, sans-serif; }
-</style>
+<title>Iniciar sesion - La Pedregoza</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png?v=2">
+<link rel="icon" href="/favicon.ico?v=2" sizes="any">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png?v=2">
+<script>
+  try {
+    if (localStorage.getItem('agro_bot_tema') === 'oscuro') {
+      document.documentElement.classList.add('dark');
+    }
+  } catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/main.75e1a6a4.css">
 </head>
-<body class="min-h-screen bg-stone-50 flex items-center justify-center px-4">
+<body class="min-h-screen bg-gradient-to-br from-stone-50 to-stone-100 flex items-center justify-center px-4">
+
+<div id="splashCarga" class="fixed inset-0 z-50 bg-stone-50 flex flex-col items-center justify-center gap-5">
+  <img src="/img/mango-logo.png" alt="La Pedregoza" class="w-40 max-w-[55%] logo-pulse">
+  <div class="w-40 h-2 rounded-full skeleton-bar"></div>
+</div>
+
+<button id="btnTema" type="button" title="Cambiar tema" aria-label="Cambiar tema"
+  class="btn-tactile fixed top-4 right-4 z-40 w-9 h-9 rounded-full flex items-center justify-center bg-white/80 dark:bg-stone-900/80 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 shadow-soft"><svg viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" class="w-[18px] h-[18px]"><path d="M380-160q133 0 226.5-93.5T700-480q0-133-93.5-226.5T380-800h-21q-10 0-19 2 57 66 88.5 147.5T460-480q0 89-31.5 170.5T340-162q9 2 19 2h21Zm0 80q-53 0-103.5-13.5T180-134q93-54 146.5-146T380-480q0-108-53.5-200T180-826q46-27 96.5-40.5T380-880q83 0 156 31.5T663-763q54 54 85.5 127T780-480q0 83-31.5 156T663-197q-54 54-127 85.5T380-80Zm80-400Z"/></svg></button>
 
 <div class="w-full max-w-sm">
   <div class="flex items-center gap-2 justify-center mb-8">
-    <span class="text-2xl">🌱</span>
-    <span class="font-semibold text-stone-700 tracking-tight">pedregoza - bot inteligente</span>
+    <img src="/img/pedregoza-logo.png" alt="La Pedregoza" class="h-8 w-auto shrink-0">
+    <span class="font-semibold text-stone-700 tracking-tight">La Pedregoza</span>
   </div>
 
-  <div class="bg-white rounded-3xl shadow-sm border border-stone-100 p-8">
+  <div class="card card-hover card-enter p-8">
     <h1 class="text-xl font-bold text-stone-800 text-center">Inicia sesion</h1>
     <p class="text-sm text-stone-400 text-center mt-1 mb-6">Accede para capturar y consultar tus reportes de campo.</p>
 
@@ -27,15 +45,42 @@
       <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password"
         class="w-full border border-stone-200 rounded-full px-5 py-3 text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white">
       <button type="submit" id="btnEntrar"
-        class="w-full bg-stone-900 hover:bg-black text-white font-semibold rounded-full py-3 text-sm transition">
+        class="btn-tactile w-full bg-stone-900 hover:bg-black text-white font-semibold rounded-full py-3 text-sm transition">
         Entrar
       </button>
     </form>
 
     <div id="error" class="mt-4 text-sm text-red-600 text-center" hidden></div>
 
+    <div class="flex items-center gap-3 my-5">
+      <div class="flex-1 h-px bg-stone-200 dark:bg-stone-700"></div>
+      <span class="text-xs text-stone-400 uppercase tracking-wide">o continúa con</span>
+      <div class="flex-1 h-px bg-stone-200 dark:bg-stone-700"></div>
+    </div>
+
+    <!-- Botones de acceso alterno (GitHub / correo): por ahora son solo la parte visual,
+         a proposito deshabilitados (ver etiqueta "Proximamente") -- todavia no estan
+         conectados a un inicio de sesion real. Cuando se decida el modelo (cuentas por
+         persona vs. solo cosmetico) se activan aqui y se dan de alta las rutas en el
+         backend (GitHub OAuth necesita Client ID/Secret; correo puede ser con
+         contraseña o "link magico" via nodemailer). -->
+    <div class="space-y-2.5">
+      <button type="button" id="btnLoginGithub" disabled title="Próximamente"
+        class="w-full flex items-center justify-center gap-2 border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-200 font-semibold rounded-full py-3 text-sm opacity-60 cursor-not-allowed">
+        <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        Iniciar sesión con GitHub
+        <span class="text-[10px] font-bold uppercase tracking-wide bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 rounded-full px-2 py-0.5 ml-1">Próximamente</span>
+      </button>
+      <button type="button" id="btnLoginCorreo" disabled title="Próximamente"
+        class="w-full flex items-center justify-center gap-2 border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-200 font-semibold rounded-full py-3 text-sm opacity-60 cursor-not-allowed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+        Continuar con correo electrónico
+        <span class="text-[10px] font-bold uppercase tracking-wide bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 rounded-full px-2 py-0.5 ml-1">Próximamente</span>
+      </button>
+    </div>
+
     <button type="button" onclick="window.location.href='/register'"
-      class="w-full bg-stone-900 hover:bg-black text-white font-semibold rounded-full py-3 text-sm transition mt-3">
+      class="btn-tactile w-full bg-stone-900 hover:bg-black text-white font-semibold rounded-full py-3 text-sm transition mt-5">
       Ver usuario y contraseña
     </button>
     <p class="text-sm text-stone-400 text-center mt-2">Si no tienes usuario, pide que te lo compartan.</p>
@@ -44,40 +89,6 @@
   <p class="text-xs text-stone-400 text-center mt-6">Acceso privado del equipo. Si olvidaste tus datos, pide que te los compartan de nuevo.</p>
 </div>
 
-<script>
-const form = document.getElementById('formLogin');
-const errorDiv = document.getElementById('error');
-const btnEntrar = document.getElementById('btnEntrar');
-
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  errorDiv.hidden = true;
-  btnEntrar.disabled = true;
-  btnEntrar.textContent = 'Entrando...';
-  try {
-    const res = await fetch('/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        usuario: document.getElementById('usuario').value,
-        password: document.getElementById('password').value,
-      }),
-    });
-    const data = await res.json();
-    if (data.ok) {
-      window.location.href = '/bot-web';
-    } else {
-      errorDiv.textContent = data.mensaje || 'No se pudo iniciar sesion.';
-      errorDiv.hidden = false;
-    }
-  } catch (err) {
-    errorDiv.textContent = 'Error de conexion: ' + err.message;
-    errorDiv.hidden = false;
-  } finally {
-    btnEntrar.disabled = false;
-    btnEntrar.textContent = 'Entrar';
-  }
-});
-</script>
+<script src="/js/dist/login.4a8f1223.bundle.js" defer></script>
 </body>
 </html>

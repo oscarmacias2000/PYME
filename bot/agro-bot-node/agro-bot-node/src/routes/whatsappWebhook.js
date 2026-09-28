@@ -75,12 +75,12 @@ router.post('/whatsapp-agro', async (req, res) => {
   } catch (e) {
     if (e.esCuotaExcedida) {
       const segundos = e.segundosEspera ? Math.ceil(e.segundosEspera) : 30;
-      console.error(`Limite de Gemini alcanzado (WhatsApp), esperar ~${segundos}s`);
+      console.error(`Limite de la IA alcanzado (WhatsApp), esperar ~${segundos}s`);
       if (phoneNumberId && from) {
         try {
-          await whatsapp.enviarTexto(phoneNumberId, from, `Se alcanzo el limite de mensajes del plan de Gemini por ahora. Intenta de nuevo en ${segundos} segundos.`);
+          await whatsapp.enviarTexto(phoneNumberId, from, `Se alcanzo el limite de mensajes del plan de IA por ahora. Intenta de nuevo en ${segundos} segundos.`);
         } catch (e2) {
-          console.error('No se pudo avisar por WhatsApp del limite de Gemini:', e2.response?.data || e2.message);
+          console.error('No se pudo avisar por WhatsApp del limite de la IA:', e2.response?.data || e2.message);
         }
       }
       return;

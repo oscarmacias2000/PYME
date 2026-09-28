@@ -1,0 +1,23 @@
+env:
+  contexts:
+    - name: buildwiselabs
+      urls:
+        - https://buildwiselabs.net
+  parameters:
+    failOnError: true
+
+jobs:
+  - type: spider
+    parameters:
+      maxDuration: 5
+
+  - type: passiveScan-wait
+
+  - type: activeScan
+    parameters:
+      maxRuleDurationInMins: 2
+
+  - type: report
+    parameters:
+      template: traditional-html
+      reportFile: reporte.html

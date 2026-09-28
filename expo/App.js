@@ -1,8 +1,9 @@
 import './global.css';
 
 import { StatusBar } from 'expo-status-bar';
-import { View } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { Animated, View } from 'react-native';
+import { cssInterop } from 'nativewind';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   useFonts,
@@ -14,6 +15,14 @@ import {
 
 import RootNavigator from './src/navigation/RootNavigator';
 import { AuthProvider } from './src/context/AuthContext';
+import MiniBot from './src/components/MiniBot';
+
+// Ref de navegacion para componentes fuera del stack (mini bot flotante).
+const navigationRef = createNavigationContainerRef();
+
+// NativeWind no aplica className a Animated.View por defecto: se registra aqui
+// para que los paneles animados (mini bot, FAQ, proceso) reciban sus estilos.
+cssInterop(Animated.View, { className: 'style' });
 
 // URLs limpias en web.
 const linking = {
@@ -24,7 +33,7 @@ const linking = {
       Servicios: 'servicios',
       Servicio: 'servicios/:id',
       Docs: 'docs',
-      Nosotros: 'nosotros',
+      Documento: 'docs/:id',
       Contacto: 'contacto',
       Login: 'login',
       Perfil: 'perfil',
@@ -38,12 +47,12 @@ const linking = {
 const navTheme = {
   dark: false,
   colors: {
-    primary: '#c026d3',
+    primary: '#9d6b99',
     background: '#ffffff',
     card: '#ffffff',
     text: '#161616',
     border: '#e0e0e0',
-    notification: '#c026d3',
+    notification: '#9d6b99',
   },
   fonts: {
     regular: { fontFamily: 'IBMPlexSans_400Regular', fontWeight: '400' },
@@ -68,8 +77,9 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <NavigationContainer linking={linking} theme={navTheme}>
+        <NavigationContainer ref={navigationRef} linking={linking} theme={navTheme}>
           <RootNavigator />
+          <MiniBot navigationRef={navigationRef} />
           <StatusBar style="dark" />
         </NavigationContainer>
       </AuthProvider>

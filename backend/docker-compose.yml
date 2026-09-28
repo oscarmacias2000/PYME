@@ -1,0 +1,41 @@
+# Base de datos AISLADA para la documentacion de los servicios (sidebar).
+# - Red propia (docs_net) y volumen propio: no comparte nada con otros
+#   contenedores ni con el Postgres nativo de la maquina (puerto 5432).
+# - Solo escucha en 127.0.0.1:5433 (no expuesta a la red local).
+# - Credenciales en backend/.env (no se sube a git).
+#
+# Uso:
+#   docker compose up -d        # levantar
+#   npm run db:seed             # llenar con datos de ejemplo (faker)
+#   docker compose down         # detener (los datos quedan en el volumen)
+#   docker compose down -v      # detener y BORRAR los datos
+name: buildwise-docs
+
+services:
+  docs-db:
+    image: postgres:16-alpine
+    container_name: buildwise-docs-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DOCS_DB_NAME:-buildwise_docs}
+      POSTGRES_USER: ${DOCS_DB_USER:-buildwise}
+      POSTGRES_PASSWORD: ${DOCS_DB_PASSWORD:?Define DOCS_DB_PASSWORD en backend/.env}
+    ports:
+      - "127.0.0.1:${DOCS_DB_PORT:-5433}:5432"
+    volumes:
+      - docs_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    networks:
+      - docs_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  docs_data:
+
+networks:
+  docs_net:
+    driver: bridge

@@ -1,4 +1,5 @@
-import { View, Text, Pressable } from 'react-native';
+import { useState } from 'react';
+import { View, Text, Pressable, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
@@ -21,7 +22,14 @@ export default function NavBar() {
   const { colorScheme, toggleColorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
 
-  const go = (name, params) => navigation.navigate(name, params);
+  const { width } = useWindowDimensions();
+  const isWide = width >= 900;
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const go = (name, params) => {
+    setMenuOpen(false);
+    navigation.navigate(name, params);
+  };
 
   const NavLink = ({ name, label }) => {
     const active = current === name;
@@ -46,13 +54,35 @@ export default function NavBar() {
   };
 
   return (
-    <View className="z-20 h-12 w-full flex-row items-center justify-between border-b border-carbon-gray20 dark:border-carbon-gray90 bg-white dark:bg-carbon-black pl-4 pr-2">
+    <View className="z-20 w-full">
+      {/* Franja de marca: malva + azul pizarra */}
+      <View className="h-[3px] w-full flex-row">
+        <View className="flex-[2] bg-carbon-blue" />
+        <View className="flex-1 bg-carbon-electric" />
+      </View>
+
+      <View className="h-14 w-full flex-row items-center justify-between border-b border-carbon-gray20 dark:border-carbon-gray90 bg-white dark:bg-carbon-black pl-5 pr-2">
       {/* Marca (logo claro en modo oscuro, oscuro en modo claro) */}
       <Pressable className="flex-row items-center" onPress={() => go('Inicio')}>
         <BuildWiseLogo height={26} variant={isDark ? 'light' : 'dark'} />
       </Pressable>
 
-      {/* Enlaces */}
+      {!isWide ? (
+        <View className="h-full flex-row items-center">
+          <ThemeToggle isDark={isDark} onPress={toggleColorScheme} />
+          <Pressable
+            onPress={() => setMenuOpen((o) => !o)}
+            accessibilityLabel={menuOpen ? 'Cerrar menu' : 'Abrir menu'}
+            className="h-full items-center justify-center px-3"
+          >
+            <Ionicons
+              name={menuOpen ? 'close' : 'menu'}
+              size={26}
+              color={isDark ? '#f4f4f4' : '#161616'}
+            />
+          </Pressable>
+        </View>
+      ) : (
       <View className="h-full flex-row items-stretch">
         <NavLink name="Inicio" />
 
@@ -106,7 +136,7 @@ export default function NavBar() {
                     go('Servicio', { id: s.id });
                   }}
                 >
-                  <Ionicons name={s.icon} size={18} color="#c026d3" />
+                  <Ionicons name={s.icon} size={18} color="#9d6b99" />
                   <Text className="flex-1 font-plex text-[14px] text-carbon-gray90 dark:text-carbon-gray20">
                     {s.title}
                   </Text>
@@ -166,7 +196,7 @@ export default function NavBar() {
                     go('Docs', { focus: d.id });
                   }}
                 >
-                  <Ionicons name={d.icon} size={18} color="#c026d3" />
+                  <Ionicons name={d.icon} size={18} color="#9d6b99" />
                   <Text className="flex-1 font-plex text-[14px] text-carbon-gray90 dark:text-carbon-gray20">
                     {d.title}
                   </Text>
@@ -176,21 +206,10 @@ export default function NavBar() {
           )}
         </Dropdown>
 
-        <NavLink name="Nosotros" />
         <NavLink name="Contacto" />
 
         {/* Toggle de tema claro/oscuro */}
-        <Pressable
-          onPress={toggleColorScheme}
-          accessibilityLabel="Cambiar tema"
-          className="h-full items-center justify-center px-3"
-        >
-          <Ionicons
-            name={isDark ? 'sunny-outline' : 'moon-outline'}
-            size={20}
-            color={isDark ? '#f4f4f4' : '#161616'}
-          />
-        </Pressable>
+        <ThemeToggle isDark={isDark} onPress={toggleColorScheme} />
 
         {/* Separador */}
         <View className="mx-1 my-3 w-px bg-carbon-gray20 dark:bg-carbon-gray90" />
@@ -249,12 +268,142 @@ export default function NavBar() {
         ) : (
           <Pressable
             onPress={() => go('Login')}
-            className="h-full flex-row items-center gap-2 bg-carbon-blue px-4 hover:bg-carbon-bluehover"
+            className="my-2.5 ml-2 flex-row items-center gap-2 rounded-full bg-carbon-blue px-5 hover:bg-carbon-bluehover"
           >
-            <Text className="font-plex text-[14px] text-white">
+            <Text className="font-plexsemibold text-[14px] text-white">
               Iniciar sesion
             </Text>
             <Ionicons name="arrow-forward" size={16} color="#ffffff" />
+          </Pressable>
+        )}
+      </View>
+      )}
+      </View>
+
+      {/* Panel movil */}
+      {!isWide && menuOpen ? (
+        <MobileMenu
+          current={current}
+          go={go}
+          isAuthenticated={isAuthenticated}
+          user={user}
+          onLogout={() => {
+            logout();
+            go('Inicio');
+          }}
+        />
+      ) : null}
+    </View>
+  );
+}
+
+function ThemeToggle({ isDark, onPress }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityLabel="Cambiar tema"
+      className="h-full items-center justify-center px-3"
+    >
+      <Ionicons
+        name={isDark ? 'sunny-outline' : 'moon-outline'}
+        size={20}
+        color={isDark ? '#f4f4f4' : '#161616'}
+      />
+    </Pressable>
+  );
+}
+
+/** Menu desplegable a todo el ancho para pantallas < 900px. */
+function MobileMenu({ current, go, isAuthenticated, user, onLogout }) {
+  const [servicesOpen, setServicesOpen] = useState(false);
+
+  const Item = ({ name, label }) => (
+    <Pressable
+      onPress={() => go(name)}
+      className={`flex-row items-center justify-between border-b border-carbon-gray20 dark:border-carbon-gray90 px-5 py-4 ${
+        current === name ? 'border-l-4 border-l-carbon-blue' : ''
+      }`}
+    >
+      <Text className="font-plexsemibold text-base text-carbon-black dark:text-white">
+        {label || name}
+      </Text>
+      <Ionicons name="arrow-forward" size={18} color="#8d8d8d" />
+    </Pressable>
+  );
+
+  return (
+    <View className="absolute left-0 right-0 top-[59px] z-30 border-b border-carbon-gray20 dark:border-carbon-gray90 bg-white dark:bg-carbon-black">
+      <Item name="Inicio" />
+
+      <Pressable
+        onPress={() => setServicesOpen((o) => !o)}
+        className="flex-row items-center justify-between border-b border-carbon-gray20 dark:border-carbon-gray90 px-5 py-4"
+      >
+        <Text className="font-plexsemibold text-base text-carbon-black dark:text-white">
+          Servicios
+        </Text>
+        <Ionicons
+          name={servicesOpen ? 'chevron-up' : 'chevron-down'}
+          size={18}
+          color="#8d8d8d"
+        />
+      </Pressable>
+      {servicesOpen ? (
+        <View className="bg-carbon-gray10 dark:bg-carbon-gray90">
+          <Pressable className="px-8 py-3" onPress={() => go('Servicios')}>
+            <Text className="font-plexsemibold text-sm text-carbon-blue">
+              Todos los servicios
+            </Text>
+          </Pressable>
+          {SERVICES.map((s) => (
+            <Pressable
+              key={s.id}
+              className="flex-row items-center gap-3 px-8 py-3"
+              onPress={() => go('Servicio', { id: s.id })}
+            >
+              <Ionicons name={s.icon} size={18} color="#9d6b99" />
+              <Text className="flex-1 font-plex text-sm text-carbon-gray90 dark:text-carbon-gray20">
+                {s.title}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+
+      <Item name="Docs" />
+      <Item name="Contacto" />
+
+      <View className="p-5">
+        {isAuthenticated ? (
+          <View className="gap-3">
+            <Pressable onPress={() => go('Perfil')} className="flex-row items-center gap-3">
+              <Avatar
+                initials={user.initials}
+                photo={user.photo}
+                bg={user.avatarColor || undefined}
+                size={32}
+              />
+              <View className="flex-1">
+                <Text className="font-plexsemibold text-sm text-carbon-black dark:text-white">
+                  {user.name}
+                </Text>
+                <Text className="font-plex text-xs text-carbon-gray70 dark:text-carbon-gray20">
+                  {user.email}
+                </Text>
+              </View>
+            </Pressable>
+            <Pressable onPress={onLogout} className="flex-row items-center gap-2 py-2">
+              <Ionicons name="log-out-outline" size={18} color="#da1e28" />
+              <Text className="font-plex text-sm text-carbon-red">Cerrar sesion</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable
+            onPress={() => go('Login')}
+            className="flex-row items-center justify-between rounded-full bg-carbon-blue px-5 py-3"
+          >
+            <Text className="font-plex text-[15px] text-white">Iniciar sesion</Text>
+            <Ionicons name="arrow-forward" size={18} color="#ffffff" />
           </Pressable>
         )}
       </View>

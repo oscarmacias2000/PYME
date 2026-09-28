@@ -1,12 +1,14 @@
-import { View, Text, Pressable, Image } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
 
+import ServiceArt from './ServiceArt';
+
 /**
- * Tile Carbon (IBM): imagen a todo el ancho arriba, contenido y flecha
- * inferior. Borde que pasa a magenta al hover. Esquinas rectas.
+ * Tile Carbon (IBM): ilustracion de marca a todo el ancho arriba, contenido
+ * y flecha inferior. Borde que pasa a malva al hover. Esquinas rectas.
  */
-export default function CarbonTile({ service, onPress }) {
+export default function CarbonTile({ service, onPress, index = 0 }) {
   const { colorScheme } = useColorScheme();
   const arrow = colorScheme === 'dark' ? '#f4f4f4' : '#161616';
   return (
@@ -15,19 +17,11 @@ export default function CarbonTile({ service, onPress }) {
       className="min-h-[300px] flex-1 justify-between border border-carbon-gray20 dark:border-carbon-gray90 bg-white dark:bg-carbon-black hover:border-carbon-blue active:opacity-90"
     >
       <View>
-        {/* Imagen del servicio a todo el ancho */}
-        {service.image ? (
-          <View className="w-full bg-carbon-gray20 dark:bg-carbon-gray90" style={{ height: 150 }}>
-            <Image
-              source={{ uri: service.image }}
-              resizeMode="cover"
-              style={{ width: '100%', height: '100%' }}
-            />
-          </View>
-        ) : null}
+        {/* Ilustracion con el logotipo de BuildWise */}
+        <ServiceArt service={service} height={150} seed={index + 1} />
 
         <View className="p-5">
-          <Ionicons name={service.icon} size={26} color="#c026d3" />
+          <Ionicons name={service.icon} size={26} color="#9d6b99" />
           <Text className="mt-4 font-plexsemibold text-xl text-carbon-black dark:text-white">
             {service.title}
           </Text>

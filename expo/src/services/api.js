@@ -43,4 +43,8 @@ export const api = {
   contact: (body) => request('/api/contact', { method: 'POST', body }),
   services: () => request('/api/services'),
   docs: () => request('/api/docs'),
+  // Documentacion de servicios (sidebar) desde el Postgres de docker compose.
+  serviceDocsTree: () => request('/api/service-docs'),
+  serviceDoc: (serviceId, slug) =>
+    request(`/api/service-docs/${encodeURIComponent(serviceId)}/${encodeURIComponent(slug)}`),
 };

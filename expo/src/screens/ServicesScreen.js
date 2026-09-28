@@ -1,8 +1,9 @@
-import { View, Text, Pressable, Image } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import Screen from '../components/ui/Screen';
-import { SERVICES } from '../constants/services';
+import ServiceArt from '../components/ServiceArt';
+import { CARD_SERVICES } from '../constants/services';
 
 export default function ServicesScreen({ navigation }) {
   return (
@@ -18,26 +19,20 @@ export default function ServicesScreen({ navigation }) {
         </Text>
       </View>
 
-      {/* Grid de cards con imagen a todo el ancho */}
+      {/* Grid de cards con ilustracion de marca a todo el ancho */}
       <View className="mb-16 flex-row flex-wrap gap-px bg-carbon-gray20 dark:bg-carbon-gray90">
-        {SERVICES.map((s) => (
+        {CARD_SERVICES.map((s, i) => (
           <Pressable
             key={s.id}
             onPress={() => navigation.navigate('Servicio', { id: s.id })}
             className="min-w-[280px] flex-1 basis-[45%] bg-white dark:bg-carbon-black hover:bg-carbon-gray10 dark:hover:bg-carbon-gray90"
           >
-            {/* Imagen a todo el ancho */}
-            <View className="w-full bg-carbon-gray20 dark:bg-carbon-gray90" style={{ height: 170 }}>
-              <Image
-                source={{ uri: s.image }}
-                resizeMode="cover"
-                style={{ width: '100%', height: '100%' }}
-              />
-            </View>
+            {/* Ilustracion con el logotipo de BuildWise */}
+            <ServiceArt service={s} height={170} seed={i + 1} />
 
             <View className="p-6">
               <View className="flex-row items-center gap-2">
-                <Ionicons name={s.icon} size={22} color="#c026d3" />
+                <Ionicons name={s.icon} size={22} color="#9d6b99" />
                 <Text className="font-plex text-sm text-carbon-blue">
                   {s.tagline}
                 </Text>
@@ -53,7 +48,7 @@ export default function ServicesScreen({ navigation }) {
                 <Text className="font-plex text-sm text-carbon-blue">
                   Ver detalle
                 </Text>
-                <Ionicons name="arrow-forward" size={18} color="#c026d3" />
+                <Ionicons name="arrow-forward" size={18} color="#9d6b99" />
               </View>
             </View>
           </Pressable>

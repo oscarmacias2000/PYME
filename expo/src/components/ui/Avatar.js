@@ -8,7 +8,7 @@ export default function Avatar({
   initials = '?',
   size = 32,
   photo = null,
-  bg = '#c026d3',
+  bg = '#9d6b99',
 }) {
   if (photo) {
     return (

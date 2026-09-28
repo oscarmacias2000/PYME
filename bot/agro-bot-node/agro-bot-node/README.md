@@ -30,7 +30,8 @@ cp .env.example .env
 npm start
 ```
 
-Se abre en `http://localhost:3000/bot-web`.
+`npm start` primero compila el CSS/JS del frontend (`npm run build`, ver seccion de
+abajo) y despues arranca el servidor. Se abre en `http://localhost:3000/bot-web`.
 
 ## Que necesitas llenar en `.env`
 
@@ -54,6 +55,81 @@ Se abre en `http://localhost:3000/bot-web`.
 Los IDs y nombres de pestaña de tus dos Google Sheets ya vienen precargados en
 `.env.example` (son los mismos que usa tu flujo de n8n); solo cambialos si algun dia
 mueves los datos a otra hoja.
+
+## Frontend: Tailwind CSS + Webpack/Babel
+
+Antes cada pagina (`public/index.html`, `login.html`, `actividad.html`) cargaba Tailwind
+por CDN (`<script src="https://cdn.tailwindcss.com">`, el "Play CDN") y traia todo su
+JavaScript metido inline en un `<script>` gigante. Eso funciona para probar, pero el
+propio Tailwind avisa en consola que ese CDN "no deberia usarse en produccion" (no
+purga clases sin usar, no permite un tema personalizado de verdad, y es mas pesado).
+
+Ahora hay un build de verdad:
+
+- **`frontend/styles/main.css`** — el CSS fuente (directivas `@tailwind` + un tema
+  personalizado en `tailwind.config.js`: sombras propias `shadow-soft`/`shadow-soft-lg`,
+  animaciones del logo/skeleton, etc). Se compila a `src/public/css/main.css` (purgado y
+  minificado) con **Tailwind CLI**.
+- **`frontend/js/pages/*.js`** — el JavaScript de cada pagina, movido tal cual desde los
+  `<script>` inline (mismo comportamiento, nada de logica reescrita) a modulos
+  separados. Se empaquetan con **Webpack** (un bundle por pagina) pasando por **Babel**
+  (`@babel/preset-env`) para asegurar compatibilidad, y quedan en `src/public/js/dist/`.
+
+Ninguno de los archivos generados (`src/public/css/`, `src/public/js/dist/`) se edita a
+mano ni se sube a git — se regeneran solos.
+
+Comandos:
+
+```bash
+npm run build       # compila CSS + JS una sola vez (produccion, minificado)
+npm run watch:css    # recompila el CSS cada vez que cambias frontend/styles/main.css
+npm run watch:js     # recompila el JS cada vez que cambias algo en frontend/js/
+```
+
+Para desarrollar el frontend con recarga en vivo, corre `npm run watch:css` y
+`npm run watch:js` cada uno en su propia terminal, y en una tercera `npm run dev`
+(recarga el servidor si tocas algo de `src/`, pero no observa `frontend/` -- por eso
+los watchers van aparte). `npm start` y `npm run dev` siempre corren `npm run build`
+una vez antes de arrancar (scripts `prestart`/`predev`), asi que nunca vas a servir un
+CSS/JS viejo por olvidarte de compilar.
+
+Si quieres tocar el look (colores, sombras, animaciones), edita `tailwind.config.js` y
+`frontend/styles/main.css` — ahi viven `.card`, `.card-elevated`, `.pill`, `.sidebar-tab`,
+etc., las clases reutilizables que antes vivian repetidas o sueltas en cada `<style>`.
+
+Segunda pasada de diseño (sobre el mismo estilo, un poco mas pulido):
+
+- Tipografia **Inter** (Google Fonts, con el mismo stack de antes como respaldo si el
+  link tarda o falla) en las 3 paginas.
+- `.card-enter` — entrada suave (fade + slide) para las tarjetas protagonistas
+  (login, estado de "Actividad en vivo").
+- `.btn-tactile` — un pequeño "hundido" (`active:scale-95`) en los botones principales
+  (Entrar, enviar texto/audio, Confirmar y guardar) para que se sientan mas responsivos.
+- `.skeleton-line` — placeholder tipo shimmer (reutiliza `.skeleton-bar` del splash) para
+  los estados de carga de Documentos e Historial, en vez de un texto plano "Cargando...".
+- La pastilla activa (`.pill.activa`, modo Agregar/Leer) ahora tambien escala un poco
+  (`scale-[1.02]`) para remarcar la seleccion.
+
+Tercera pasada (modo oscuro + mas botones + Noticias):
+
+- **Modo oscuro** -- boton "🌙/☀️" en el header de las 3 paginas (login lo trae flotando
+  arriba a la derecha). Togglea la clase `.dark` en `<html>` y guarda la preferencia en
+  `localStorage` (`agro_bot_tema`) para la siguiente visita -- la logica compartida vive
+  en `frontend/js/tema.js`, y el `<script>` chiquito al principio de cada `<head>` aplica
+  el tema ANTES de pintar la pagina (para no "parpadear"). El recoloreado en si vive al
+  final de `frontend/styles/main.css`: en vez de agregar `dark:` a cada clase suelta de
+  cada `.html`, se recolorean por selector (`.dark .bg-white`, `.dark .text-stone-600`,
+  etc.) los mismos tonos que el HTML ya usa. Si agregas una pantalla nueva con colores
+  que no esten ya en esa lista, es ahi donde se agrega el nuevo `.dark .algo { ... }`.
+- **Pestaña "Noticias"** en el sidebar (junto a Historial/Acciones/Actividad en vivo) --
+  es texto fijo que se edita directo en `src/public/index.html` (busca `panelNoticias`),
+  no jala de internet ni tiene backend propio.
+- **Mas botones**: "🔄 Actualizar" en Historial (re-consulta la ultima tabla que viste) y
+  "🔗 Copiar enlace del bot" en Acciones (copia `/bot-web` al portapapeles, util para
+  compartirlo con el equipo).
+- Los chips repetidos de Historial y "enviar por correo" ahora usan una sola clase
+  `.chip` (antes era una tira larga de utilidades repetida en cada boton) con un hover
+  en negro solido, para que se sientan mas "con peso".
 
 ## Exponer el servidor a internet (para que Meta le pueda pegar al webhook)
 

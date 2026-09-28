@@ -3,7 +3,7 @@
 import { IMAGES } from './images';
 import { CLAUDE_LOGO, N8N_LOGO, GROQ_LOGO, GEMINI_LOGO, CLAUDE_SVG, N8N_SVG, GROQ_SVG, GEMINI_SVG, OLLAMA_SVG, CISCO_SVG, JUNIPER_SVG } from './logos';
 
-const _botSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450"><defs><radialGradient id="bg" cx="50%" cy="45%" r="60%"><stop offset="0%" stop-color="#0d1f2d"/><stop offset="100%" stop-color="#05080a"/></radialGradient><radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#4589ff" stop-opacity="0.18"/><stop offset="100%" stop-color="#4589ff" stop-opacity="0"/></radialGradient></defs>
+const _botSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450"><defs><radialGradient id="bg" cx="50%" cy="45%" r="60%"><stop offset="0%" stop-color="#0d1f2d"/><stop offset="100%" stop-color="#05080a"/></radialGradient><radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#7088b3" stop-opacity="0.18"/><stop offset="100%" stop-color="#7088b3" stop-opacity="0"/></radialGradient></defs>
 <rect width="800" height="450" fill="url(#bg)"/>
 <rect width="800" height="450" fill="url(#glow)"/>
 <!-- grid lines -->
@@ -17,49 +17,49 @@ const _botSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450"><
   <line x1="700" y1="0" x2="700" y2="450"/>
 </g>
 <!-- antena -->
-<line x1="400" y1="95" x2="400" y2="125" stroke="#4589ff" stroke-width="4" stroke-linecap="round"/>
-<circle cx="400" cy="88" r="9" fill="#4589ff" opacity="0.9"/>
+<line x1="400" y1="95" x2="400" y2="125" stroke="#7088b3" stroke-width="4" stroke-linecap="round"/>
+<circle cx="400" cy="88" r="9" fill="#7088b3" opacity="0.9"/>
 <circle cx="400" cy="88" r="5" fill="#a6c8ff"/>
 <!-- cabeza del bot -->
-<rect x="255" y="125" width="290" height="200" rx="28" fill="#0f1e2e" stroke="#4589ff" stroke-width="2.5" opacity="0.95"/>
+<rect x="255" y="125" width="290" height="200" rx="28" fill="#0f1e2e" stroke="#7088b3" stroke-width="2.5" opacity="0.95"/>
 <!-- brillo superior -->
-<rect x="280" y="130" width="240" height="6" rx="3" fill="#4589ff" opacity="0.15"/>
+<rect x="280" y="130" width="240" height="6" rx="3" fill="#7088b3" opacity="0.15"/>
 <!-- ojos -->
-<rect x="297" y="175" width="72" height="52" rx="14" fill="#061523" stroke="#4589ff" stroke-width="2"/>
-<rect x="431" y="175" width="72" height="52" rx="14" fill="#061523" stroke="#4589ff" stroke-width="2"/>
+<rect x="297" y="175" width="72" height="52" rx="14" fill="#061523" stroke="#7088b3" stroke-width="2"/>
+<rect x="431" y="175" width="72" height="52" rx="14" fill="#061523" stroke="#7088b3" stroke-width="2"/>
 <!-- pupilas / iris animadas -->
-<circle cx="333" cy="201" r="16" fill="#4589ff" opacity="0.9"/>
-<circle cx="467" cy="201" r="16" fill="#4589ff" opacity="0.9"/>
+<circle cx="333" cy="201" r="16" fill="#7088b3" opacity="0.9"/>
+<circle cx="467" cy="201" r="16" fill="#7088b3" opacity="0.9"/>
 <circle cx="339" cy="196" r="7" fill="#a6c8ff"/>
 <circle cx="473" cy="196" r="7" fill="#a6c8ff"/>
 <circle cx="343" cy="193" r="3" fill="#ffffff"/>
 <circle cx="477" cy="193" r="3" fill="#ffffff"/>
 <!-- boca / display de mensajes -->
-<rect x="297" y="252" width="206" height="42" rx="10" fill="#061523" stroke="#4589ff" stroke-width="1.5" opacity="0.9"/>
-<rect x="308" y="264" width="60" height="6" rx="3" fill="#4589ff" opacity="0.7"/>
+<rect x="297" y="252" width="206" height="42" rx="10" fill="#061523" stroke="#7088b3" stroke-width="1.5" opacity="0.9"/>
+<rect x="308" y="264" width="60" height="6" rx="3" fill="#7088b3" opacity="0.7"/>
 <rect x="376" y="264" width="40" height="6" rx="3" fill="#697077" opacity="0.5"/>
 <rect x="308" y="277" width="90" height="6" rx="3" fill="#697077" opacity="0.4"/>
 <!-- cuerpo -->
-<rect x="300" y="330" width="200" height="70" rx="16" fill="#0f1e2e" stroke="#4589ff" stroke-width="1.5" opacity="0.9"/>
+<rect x="300" y="330" width="200" height="70" rx="16" fill="#0f1e2e" stroke="#7088b3" stroke-width="1.5" opacity="0.9"/>
 <!-- botones cuerpo -->
-<circle cx="345" cy="358" r="10" fill="#4589ff" opacity="0.8"/>
+<circle cx="345" cy="358" r="10" fill="#7088b3" opacity="0.8"/>
 <circle cx="375" cy="358" r="10" fill="#1a4f8a" opacity="0.6"/>
 <circle cx="405" cy="358" r="10" fill="#1a4f8a" opacity="0.6"/>
-<rect x="330" y="374" width="140" height="6" rx="3" fill="#4589ff" opacity="0.25"/>
+<rect x="330" y="374" width="140" height="6" rx="3" fill="#7088b3" opacity="0.25"/>
 <!-- brazos -->
-<rect x="188" y="330" width="108" height="24" rx="12" fill="#0f1e2e" stroke="#4589ff" stroke-width="1.5"/>
-<rect x="504" y="330" width="108" height="24" rx="12" fill="#0f1e2e" stroke="#4589ff" stroke-width="1.5"/>
+<rect x="188" y="330" width="108" height="24" rx="12" fill="#0f1e2e" stroke="#7088b3" stroke-width="1.5"/>
+<rect x="504" y="330" width="108" height="24" rx="12" fill="#0f1e2e" stroke="#7088b3" stroke-width="1.5"/>
 <!-- manos -->
-<circle cx="188" cy="342" r="18" fill="#0f1e2e" stroke="#4589ff" stroke-width="1.5"/>
-<circle cx="612" cy="342" r="18" fill="#0f1e2e" stroke="#4589ff" stroke-width="1.5"/>
+<circle cx="188" cy="342" r="18" fill="#0f1e2e" stroke="#7088b3" stroke-width="1.5"/>
+<circle cx="612" cy="342" r="18" fill="#0f1e2e" stroke="#7088b3" stroke-width="1.5"/>
 <!-- particulas flotantes -->
-<circle cx="160" cy="160" r="3" fill="#4589ff" opacity="0.4"/>
-<circle cx="640" cy="140" r="4" fill="#4589ff" opacity="0.3"/>
+<circle cx="160" cy="160" r="3" fill="#7088b3" opacity="0.4"/>
+<circle cx="640" cy="140" r="4" fill="#7088b3" opacity="0.3"/>
 <circle cx="680" cy="300" r="3" fill="#a6c8ff" opacity="0.3"/>
 <circle cx="130" cy="310" r="3" fill="#a6c8ff" opacity="0.35"/>
-<circle cx="720" cy="200" r="5" fill="#4589ff" opacity="0.2"/>
+<circle cx="720" cy="200" r="5" fill="#7088b3" opacity="0.2"/>
 <!-- label inferior -->
-<text x="400" y="428" text-anchor="middle" fill="#4589ff" opacity="0.4" font-size="12" font-family="monospace" letter-spacing="8">CHATBOT · IA LOCAL · BUILDWISE</text>
+<text x="400" y="428" text-anchor="middle" fill="#7088b3" opacity="0.4" font-size="12" font-family="monospace" letter-spacing="8">CHATBOT · IA LOCAL · BUILDWISE</text>
 </svg>`;
 const CHATBOT_IMAGE = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(_botSvg)}`;
 
@@ -129,12 +129,6 @@ export const SERVICES = [
         icon: 'hardware-chip-outline',
         items: ['Sistemas operativos (Windows, Linux, macOS)', 'Procesadores (x86-64, ARM64)', 'GPU recomendadas (NVIDIA, AMD)', 'RAM minima recomendada', 'Requisitos de red'],
       },
-    ],
-    gallery: [
-      'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=800&q=80&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=800&q=80&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80&auto=format&fit=crop',
     ],
     guide: [
       {
@@ -323,7 +317,7 @@ console.log(chat.choices[0].message.content);`,
               subtitle: 'llama-3.3-70b-versatile',
               items: [
                 { icon: '🧑', label: '¿Tienen soporte en fin de semana?', sub: 'usuario' },
-                { icon: '⚡', label: 'Sí, nuestro equipo atiende sábado y domingo de 9am a 6pm.', sub: 'Groq · 187ms' },
+                { icon: '🤖', label: 'Sí, nuestro equipo atiende sábado y domingo de 9am a 6pm.', sub: 'Groq · 187ms' },
               ],
               code: '⚡ Latencia: 187ms\n🆓 Plan gratuito: 6000 req/día',
             },
@@ -549,7 +543,7 @@ export async function ask(messages, system = '') {
               items: [
                 { icon: '📧', label: 'Asunto: "Factura vencida #4421"', sub: 'entrada' },
                 { icon: '🤖', label: 'categoria: soporte · prioridad: alta', sub: 'JSON de Claude' },
-                { icon: '⚡', label: 'accion: Escalar a técnico de facturación', sub: 'decision tomada' },
+                { icon: '🤖', label: 'accion: Escalar a técnico de facturación', sub: 'decision tomada' },
               ],
               code: '→ Ticket creado automáticamente\n→ Notificación enviada a Slack',
             },
@@ -1127,7 +1121,7 @@ export default function App() {
             };
             return <Ionicons name={icons[route.name]} size={size} color={color} />;
           },
-          tabBarActiveTintColor: '#c026d3',
+          tabBarActiveTintColor: '#9d6b99',
           tabBarInactiveTintColor: '#8d8d8d',
         })}
       >
@@ -1212,7 +1206,6 @@ export default function MiBoton() {
       Inicio: '',
       Servicios: 'servicios',
       Servicio: 'servicios/:id',
-      Nosotros: 'nosotros',
       Contacto: 'contacto',
       Login: 'login',
       Perfil: 'perfil',
@@ -1410,6 +1403,7 @@ ARP (Address Resolution Protocol, RFC 826):
   },
   {
     id: 'visor-reportes',
+    card: false, // sin tarjeta en Inicio ni en Servicios (pedido del cliente)
     icon: 'bar-chart-outline',
     title: 'Visor de Reportes de Campo',
     tagline: 'Dashboard de Excel en tiempo real',
@@ -1457,16 +1451,14 @@ ARP (Address Resolution Protocol, RFC 826):
   },
 ];
 
+// Servicios con tarjeta en Inicio y en Servicios (`card: false` la oculta).
+export const CARD_SERVICES = SERVICES.filter((s) => s.card !== false);
+
 // Busca un servicio por id (para la pagina de detalle).
 export const getService = (id) => SERVICES.find((s) => s.id === id);
 
 // Seccion "Recomendado para usted" (tarjetas con etiqueta de tipo).
 export const RECOMMENDED = [
-  {
-    id: 'r1',
-    tag: 'Prueba gratuita',
-    title: 'Experimenta el poder de la automatizacion con IA durante 30 dias',
-  },
   {
     id: 'r2',
     tag: 'Webinar',
